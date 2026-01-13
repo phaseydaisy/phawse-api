@@ -7,10 +7,15 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
   },
-  "keywords": ["gif", "api", "cloudflare", "workers"],
+  "keywords": [
+    "gif",
+    "api",
+    "cloudflare",
+    "workers"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "wrangler": "^3.0.0"
+    "wrangler": "^4.59.1"
   }
 }
