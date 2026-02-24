@@ -72,20 +72,156 @@ export default {
   }
 };
 
+const CATEGORY_ALIAS_MAP = {
+  patting: 'pat',
+  headpat: 'pat',
+  pats: 'pat',
+  hugging: 'hug',
+  cuddling: 'cuddle',
+  kissing: 'kiss',
+  poking: 'poke',
+  slapping: 'slap',
+  smiling: 'smile',
+  laughing: 'laugh',
+  blushing: 'blush',
+  waving: 'wave',
+  highfive: 'highfive',
+  handholding: 'handhold',
+  handhold: 'handhold',
+  handholdinghands: 'handhold',
+  horny: 'lewd',
+  ecchi: 'lewd',
+  blowjob: 'ero',
+  boobs: 'ero',
+  breast: 'ero',
+  breasts: 'ero',
+  thighs: 'thigh'
+};
+
+function normalizeCategory(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function chooseSupportedCategory(category, supportedCategories) {
+  const requested = normalizeCategory(category);
+  if (!requested || !Array.isArray(supportedCategories) || supportedCategories.length === 0) return null;
+
+  const normalizedSupported = supportedCategories.map(item => ({
+    raw: item,
+    normalized: normalizeCategory(item)
+  }));
+
+  const exact = normalizedSupported.find(item => item.normalized === requested);
+  if (exact) return exact.raw;
+
+  const alias = CATEGORY_ALIAS_MAP[requested];
+  if (alias) {
+    const aliased = normalizedSupported.find(item => item.normalized === normalizeCategory(alias));
+    if (aliased) return aliased.raw;
+  }
+
+  const contains = normalizedSupported.find(item => requested.includes(item.normalized) || item.normalized.includes(requested));
+  if (contains) return contains.raw;
+
+  return null;
+}
+
+function getCategoryForSource(source, category, nsfw) {
+  const sourceCategories = {
+    purrbot: nsfw
+      ? ['hentai', 'lewd', 'ero', 'cum', 'pussy', 'ass', 'harem']
+      : ['hug', 'kiss', 'pat', 'poke', 'slap', 'cuddle', 'tickle', 'wave', 'highfive', 'handhold', 'hold', 'boop', 'lick', 'bite', 'nom', 'pinch', 'stare', 'glare', 'nod', 'shrug', 'dance', 'run', 'jump', 'spin'],
+    waifupics: nsfw
+      ? ['waifu', 'neko']
+      : ['waifu', 'neko', 'shinobu', 'megumin', 'bully', 'cuddle', 'cry', 'hug', 'awoo', 'kiss', 'lick', 'pat', 'smug', 'bonk', 'yeet', 'blush', 'smile', 'wave', 'highfive', 'handhold', 'nom', 'bite', 'glomp', 'slap', 'kill', 'kick', 'happy', 'wink', 'poke', 'dance', 'cringe'],
+    nekosbest: ['hug', 'kiss', 'slap', 'pat', 'poke', 'wave', 'smile', 'highfive', 'handshake', 'bite', 'blush', 'bored', 'cry', 'dance', 'facepalm', 'feed', 'happy', 'laugh', 'nod', 'nom', 'nope', 'pout', 'shrug', 'sleep', 'smug', 'stare', 'think', 'thumbsup', 'tickle', 'wink', 'yawn', 'yeet'],
+    nekoslife: nsfw
+      ? ['neko', 'boobs', 'pussy', 'hentai', 'feet', 'yuri', 'trap', 'futanari', 'femdom', 'lewd']
+      : ['neko', 'hug', 'pat', 'kiss', 'slap', 'poke', 'tickle', 'feed', 'cuddle', 'fox_girl', 'waifu', 'smug'],
+    nekolove: ['hug', 'kiss', 'pat', 'cuddle', 'slap', 'poke', 'tickle', 'neko', 'waifu', 'foxgirl'],
+    kawaiired: ['hug', 'kiss', 'slap', 'pat', 'poke', 'cuddle', 'neko', 'waifu', 'smile', 'wave'],
+    animeapi: ['hug', 'kiss', 'slap', 'pat', 'wave', 'smile', 'cry', 'dance', 'sleep'],
+    waifuit: ['hug', 'kiss', 'slap', 'pat', 'poke', 'cuddle', 'neko', 'waifu', 'smile', 'blush'],
+    nekosfun: ['hug', 'kiss', 'slap', 'pat', 'tickle', 'neko', 'kitsune', 'smug', 'baka'],
+    otakugif: ['hug', 'kiss', 'slap', 'cuddle', 'poke', 'pat', 'tickle', 'bite', 'lick', 'nom'],
+    nekosapialt: ['hug', 'kiss', 'slap', 'pat', 'cuddle', 'neko', 'waifu', 'tickle']
+  };
+
+  if (!sourceCategories[source]) return category;
+  return chooseSupportedCategory(category, sourceCategories[source]);
+}
+
+function getCategoryMatchScore(item, category) {
+  const requested = normalizeCategory(category);
+  if (!requested || !item) return 0;
+
+  const alias = CATEGORY_ALIAS_MAP[requested];
+  const tags = Array.isArray(item.tags) ? item.tags.join(' ') : '';
+  const haystack = normalizeCategory(`${tags} ${item.url || ''} ${item.source || ''}`);
+
+  if (!haystack) return 0;
+  if (haystack.includes(requested)) return 3;
+  if (alias && haystack.includes(normalizeCategory(alias))) return 2;
+
+  const simpleRequested = requested.replace(/ing$|ed$|s$/g, '');
+  if (simpleRequested && haystack.includes(simpleRequested)) return 1;
+
+  return 0;
+}
+
+function prioritizeCategoryMatches(results, category) {
+  const withScore = results.map(result => ({
+    result,
+    score: getCategoryMatchScore(result, category)
+  }));
+
+  const strongMatches = withScore.filter(item => item.score > 0).sort((a, b) => b.score - a.score).map(item => item.result);
+  if (strongMatches.length > 0) return strongMatches;
+
+  return results;
+}
+
+const NON_ANIME_SOURCES = new Set(['realbooru']);
+const ANIME_FIRST_SOURCES = new Set([
+  'purrbot', 'waifupics', 'nekosbest', 'nekoslife', 'waifuim', 'shinkaiio', 'uwunetwork',
+  'nekolovexyz', 'kawaiired', 'animechan', 'nekosmoe', 'animeapi', 'pixivbooru',
+  'zerochan', 'animepictures', 'waifuit', 'nekosfun', 'otakugif', 'nekosapialt',
+  'gelbooru', 'danbooru', 'yandere', 'konachan', 'safebooru', 'rule34', 'hmtai',
+  'redgifs', 'sankaku', 'xbooru', 'lolibooru', 'tbib', 'nekobotapi', 'nsfwapi'
+]);
+const ANIME_HINT_KEYWORDS = ['anime', 'waifu', 'neko', 'hentai', 'manga', 'otaku', 'chibi', 'yuri', 'yaoi'];
+
+function isLikelyAnimeGif(item, requestedCategory = '') {
+  if (!item) return false;
+
+  const normalizedSource = normalizeCategory(item.source || '');
+  if (NON_ANIME_SOURCES.has(normalizedSource)) return false;
+  if (ANIME_FIRST_SOURCES.has(normalizedSource)) return true;
+
+  const combined = normalizeCategory(`${item.url || ''} ${(item.tags || []).join(' ')} ${item.source || ''}`);
+  if (!combined) return false;
+
+  if (ANIME_HINT_KEYWORDS.some(keyword => combined.includes(keyword))) return true;
+  if (requestedCategory && getCategoryMatchScore(item, requestedCategory) > 0) return true;
+
+  return false;
+}
+
 async function handleCategoryGif(category, nsfw, experimental, detectAnime, env, corsHeaders) {
   try {
     const animeQuery = `anime ${category}`;
+    const purrbotCategory = getCategoryForSource('purrbot', category, nsfw);
     
-    let gif = nsfw
-      ? await getRandomPurrbotNsfw(category, env)
-      : await getRandomPurrbot(category, nsfw, env);
+    let gif = purrbotCategory
+      ? (nsfw ? await getRandomPurrbotNsfw(purrbotCategory, env) : await getRandomPurrbot(purrbotCategory, nsfw, env))
+      : null;
 
-    if (gif && !(await isLikelyLoadableMedia(gif.url))) {
+    if (gif && (!(await isLikelyLoadableMedia(gif.url)) || !isLikelyAnimeGif(gif, category))) {
       gif = null;
     }
 
     const sources = ['gelbooru', 'gfycat', 'tenor', 'waifupics', 'nekosbest', 'nekoslife', 'waifuim', 'shinkaiio', 'uwunetwork', 'nekolove', 'kawaiired', 'animechan', 'nekosapi', 'animeapi', 'imgur', 'pixivbooru', 'zerochan', 'animepictures', 'waifuit', 'nekosfun', 'otakugif', 'nekosapialt'];
-    if (nsfw) sources.push('rule34', 'redgifs', 'hmtai', 'danbooru', 'yandere', 'waifuimnsfw', 'nekobotapi', 'nsfwapi', 'hentaifox', 'sankaku', 'xbooru', 'lolibooru', 'tbib', 'realbooru')
+    if (nsfw) sources.push('rule34', 'redgifs', 'hmtai', 'danbooru', 'yandere', 'waifuimnsfw', 'nekobotapi', 'nsfwapi', 'hentaifox', 'sankaku', 'xbooru', 'lolibooru', 'tbib')
     if (experimental) sources.push('experimental');
     
     if (!gif) {
@@ -97,13 +233,22 @@ async function handleCategoryGif(category, nsfw, experimental, detectAnime, env,
           gif = await getRandomGelbooru(category, nsfw, env);
           break;
         case 'waifupics':
-          gif = await getRandomWaifuPics(category, nsfw, env);
+          {
+            const sourceCategory = getCategoryForSource('waifupics', category, nsfw);
+            gif = sourceCategory ? await getRandomWaifuPics(sourceCategory, nsfw, env) : null;
+          }
           break;
         case 'nekosbest':
-          gif = await getRandomNekosBest(category, nsfw, env);
+          {
+            const sourceCategory = getCategoryForSource('nekosbest', category, nsfw);
+            gif = sourceCategory ? await getRandomNekosBest(sourceCategory, nsfw, env) : null;
+          }
           break;
         case 'nekoslife':
-          gif = await getRandomNekosLife(category, nsfw, env);
+          {
+            const sourceCategory = getCategoryForSource('nekoslife', category, nsfw);
+            gif = sourceCategory ? await getRandomNekosLife(sourceCategory, nsfw, env) : null;
+          }
           break;
         case 'waifuim':
           gif = await getRandomWaifuIm(category, nsfw, env);
@@ -145,10 +290,16 @@ async function handleCategoryGif(category, nsfw, experimental, detectAnime, env,
           gif = await getRandomGifsCom(animeQuery, env);
           break;
         case 'nekolove':
-          gif = await getRandomNekoLove(category, nsfw, env);
+          {
+            const sourceCategory = getCategoryForSource('nekolove', category, nsfw);
+            gif = sourceCategory ? await getRandomNekoLove(sourceCategory, nsfw, env) : null;
+          }
           break;
         case 'kawaiired':
-          gif = await getRandomKawaii(category, nsfw, env);
+          {
+            const sourceCategory = getCategoryForSource('kawaiired', category, nsfw);
+            gif = sourceCategory ? await getRandomKawaii(sourceCategory, nsfw, env) : null;
+          }
           break;
         case 'animechan':
           gif = await getRandomAnimechan(category, nsfw, env);
@@ -157,7 +308,10 @@ async function handleCategoryGif(category, nsfw, experimental, detectAnime, env,
           gif = await getRandomNekosApi(category, nsfw, env);
           break;
         case 'animeapi':
-          gif = await getRandomAnimeApi(category, nsfw, env);
+          {
+            const sourceCategory = getCategoryForSource('animeapi', category, nsfw);
+            gif = sourceCategory ? await getRandomAnimeApi(sourceCategory, nsfw, env) : null;
+          }
           break;
         case 'giphy':
           gif = await getRandomGiphy(animeQuery, env);
@@ -190,16 +344,28 @@ async function handleCategoryGif(category, nsfw, experimental, detectAnime, env,
           gif = await getRandomAnimePictures(category, nsfw, env);
           break;
         case 'waifuit':
-          gif = await getRandomWaifuIt(category, nsfw, env);
+          {
+            const sourceCategory = getCategoryForSource('waifuit', category, nsfw);
+            gif = sourceCategory ? await getRandomWaifuIt(sourceCategory, nsfw, env) : null;
+          }
           break;
         case 'nekosfun':
-          gif = await getRandomNekosFun(category, nsfw, env);
+          {
+            const sourceCategory = getCategoryForSource('nekosfun', category, nsfw);
+            gif = sourceCategory ? await getRandomNekosFun(sourceCategory, nsfw, env) : null;
+          }
           break;
         case 'otakugif':
-          gif = await getRandomOtakuGif(category, nsfw, env);
+          {
+            const sourceCategory = getCategoryForSource('otakugif', category, nsfw);
+            gif = sourceCategory ? await getRandomOtakuGif(sourceCategory, nsfw, env) : null;
+          }
           break;
         case 'nekosapialt':
-          gif = await getRandomNekosApiAlt(category, nsfw, env);
+          {
+            const sourceCategory = getCategoryForSource('nekosapialt', category, nsfw);
+            gif = sourceCategory ? await getRandomNekosApiAlt(sourceCategory, nsfw, env) : null;
+          }
           break;
         case 'lolibooru':
           gif = await getRandomLolibooru(category, env);
@@ -214,7 +380,7 @@ async function handleCategoryGif(category, nsfw, experimental, detectAnime, env,
           gif = await getRandomGelbooru(category, nsfw, env);
         }
 
-        if (gif && await isLikelyLoadableMedia(gif.url)) {
+        if (gif && await isLikelyLoadableMedia(gif.url) && isLikelyAnimeGif(gif, category)) {
           break;
         }
 
@@ -225,9 +391,9 @@ async function handleCategoryGif(category, nsfw, experimental, detectAnime, env,
     if (!gif) {
       const results = await searchAllSources(animeQuery, 20, nsfw, experimental, env);
       if (results.length > 0) {
-        const shuffledResults = [...results].sort(() => Math.random() - 0.5);
-        for (const candidate of shuffledResults) {
-          if (await isLikelyLoadableMedia(candidate.url)) {
+        const prioritizedResults = prioritizeCategoryMatches(results, category);
+        for (const candidate of prioritizedResults) {
+          if (await isLikelyLoadableMedia(candidate.url) && isLikelyAnimeGif(candidate, category)) {
             gif = candidate;
             break;
           }
@@ -325,9 +491,12 @@ async function handleSearch(url, env, corsHeaders, experimental, detectAnime) {
 
   try {
     const animeQuery = `anime ${query}`;
-    const results = await searchAllSources(animeQuery, limit, nsfw, experimental, env);
+    const results = await searchAllSources(animeQuery, limit * 2, nsfw, experimental, env);
+    const prioritized = prioritizeCategoryMatches(results, query);
+    const animeOnly = prioritized.filter(result => isLikelyAnimeGif(result, query));
+    const finalResults = (animeOnly.length > 0 ? animeOnly : prioritized).slice(0, limit);
 
-    const mappedResults = results.map(r => ({
+    const mappedResults = finalResults.map(r => ({
       url: `https://api.phawse.lol/proxy/${encodeURIComponent(r.url)}`,
       original_url: r.url,
       source: r.source,
@@ -351,7 +520,7 @@ async function handleSearch(url, env, corsHeaders, experimental, detectAnime) {
     return jsonResponse({
       query,
       nsfw,
-      count: results.length,
+      count: mappedResults.length,
       results: mappedResults
     }, corsHeaders);
   } catch (error) {
@@ -620,7 +789,6 @@ async function searchAllSources(query, limit, nsfw, experimental, env) {
     searches.push(searchXbooru(query, limit, env).catch(() => []));
     searches.push(searchLolibooru(query, limit, env).catch(() => []));
     searches.push(searchTbib(query, limit, env).catch(() => []));
-    searches.push(searchRealbooru(query, limit, env).catch(() => []));
   }
   
   searches.push(searchImgur(query, limit, env).catch(() => []));
