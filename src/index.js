@@ -19,22 +19,23 @@ export default {
     }
 
     const experimental = url.searchParams.get('experimental') === 'true';
+    const detectAnime = url.searchParams.get('detect') === 'true';
 
     if (pathParts[0] === 'gif' && pathParts[1]) {
-      return handleCategoryGif(pathParts[1], false, experimental, env, corsHeaders);
+      return handleCategoryGif(pathParts[1], false, experimental, detectAnime, env, corsHeaders);
     }
 
     if (pathParts[0] === 'nsfw' && pathParts[1]) {
-      return handleCategoryGif(pathParts[1], true, experimental, env, corsHeaders);
+      return handleCategoryGif(pathParts[1], true, experimental, detectAnime, env, corsHeaders);
     }
 
     if (pathParts[0] === 'search') {
-      return handleSearch(url, env, corsHeaders, experimental);
+      return handleSearch(url, env, corsHeaders, experimental, detectAnime);
     }
 
     if (pathParts[0] === 'random') {
       const nsfw = url.searchParams.get('nsfw') === 'true';
-      return handleRandomGif(nsfw, experimental, env, corsHeaders);
+      return handleRandomGif(nsfw, experimental, detectAnime, env, corsHeaders);
     }
 
     return jsonResponse({
@@ -46,10 +47,11 @@ export default {
         '/search?q=query': 'Search for anime gifs',
         '/random': 'Get completely random anime gif',
         'query param experimental=true': 'Enable best-effort experimental anime sources (skips on failure)',
+        'query param detect=true': 'Detect anime source name (slower response)',
       },
       categories: {
         emotions: ['happy', 'sad', 'angry', 'mad', 'cry', 'crying', 'smile', 'smiling', 'laugh', 'laughing', 'giggle', 'chuckle', 'blush', 'blushing', 'shy', 'shyness', 'embarrassed', 'embarrass', 'confused', 'confuse', 'surprised', 'surprise', 'shock', 'shocked', 'excited', 'excitement', 'nervous', 'anxious', 'scared', 'afraid', 'fear', 'terrified', 'tired', 'exhausted', 'sleepy', 'drowsy', 'bored', 'boring', 'annoyed', 'irritated', 'frustrated', 'pout', 'pouting', 'sulk', 'smug', 'confident', 'proud', 'serious', 'stern', 'determined', 'relaxed', 'calm', 'peaceful', 'chill', 'thinking', 'pondering', 'wondering', 'curious', 'interest', 'interested', 'worried', 'concern', 'concerned', 'jealous', 'envy', 'lonely', 'loneliness', 'depressed', 'depression', 'anxious', 'anxiety', 'panic', 'hopeful', 'hope', 'desperate', 'devastated', 'heartbroken', 'melancholy', 'nostalgic', 'regret', 'guilty', 'ashamed', 'disgusted', 'disappointed'],
-        actions: ['hug', 'hugging', 'embrace', 'kiss', 'kissing', 'smooch', 'peck', 'pat', 'patting', 'headpat', 'poke', 'poking', 'prod', 'slap', 'slapping', 'hit', 'punch', 'kick', 'kicking', 'cuddle', 'cuddling', 'snuggle', 'snuggling', 'tickle', 'tickling', 'wave', 'waving', 'highfive', 'handhold', 'holding', 'hold', 'boop', 'booping', 'lick', 'licking', 'bite', 'biting', 'nom', 'nibble', 'pinch', 'pinching', 'stare', 'staring', 'gaze', 'glare', 'glaring', 'nod', 'nodding', 'shake', 'shaking', 'shrug', 'shrugging', 'salute', 'handshake', 'peace', 'fingerguns', 'wink', 'smirk', 'dance', 'dancing', 'run', 'running', 'sprint', 'jump', 'jumping', 'leap', 'hop', 'spin', 'spinning', 'twirl', 'roll', 'rolling', 'crawl', 'walk', 'walking', 'trip', 'fall', 'falling', 'sit', 'sitting', 'stand', 'lay', 'laying', 'kneel', 'bow', 'bowing', 'peek', 'peeking', 'hide', 'hiding', 'chase', 'grab', 'catch', 'throw', 'toss'],
+        actions: ['hug', 'hugging', 'embrace', 'kiss', 'kissing', 'smooch', 'peck', 'pat', 'patting', 'headpat', 'poke', 'poking', 'prod', 'slap', 'slapping', 'hit', 'punch', 'kick', 'kicking', 'cuddle', 'cuddling', 'snuggle', 'snuggling', 'tickle', 'tickling', 'wave', 'waving', 'highfive', 'handhold', 'holding', 'hold', 'boop', 'booping', 'lick', 'licking', 'bite', 'biting', 'nom', 'nibble', 'pinch', 'pinching', 'stare', 'staring', 'gaze', 'glare', 'glaring', 'nod', 'nodding', 'shake', 'shaking', 'shrug', 'shrugging', 'salute', 'handshake', 'peace', 'fingerguns', 'wink', 'smirk', 'dance', 'dancing', 'run', 'running', 'sprint', 'jump', 'jumping', 'leap', 'hop', 'spin', 'spinning', 'twirl', 'roll', 'rolling', 'crawl', 'walk', 'walking', 'trip', 'fall', 'falling', 'sit', 'sitting', 'stand', 'lay', 'laying', 'kneel', 'bow', 'bowing', 'peek', 'peeking', 'hide', 'hiding', 'chase', 'grab', 'catch', 'throw', 'toss', 'backflip', 'backflips', 'frontflip', 'frontflips', 'flip', 'flips', 'acrobatic', 'acrobatics'],
         social: ['greet', 'greeting', 'hello', 'hi', 'hey', 'bye', 'goodbye', 'farewell', 'leave', 'leaving', 'welcome', 'welcoming', 'thankyou', 'thanks', 'grateful', 'appreciate', 'sorry', 'apologize', 'apology', 'forgive', 'forgiveness', 'pardon', 'excuse', 'cheer', 'cheering', 'encourage', 'motivate', 'comfort', 'comforting', 'console', 'support', 'supporting', 'help', 'helping', 'assist', 'celebrate', 'celebrating', 'party', 'congrats', 'congratulate', 'clap', 'clapping', 'applaud', 'praise', 'compliment', 'facepalm', 'sigh', 'shriek', 'scream', 'screaming', 'yell', 'shout', 'whisper', 'talk', 'talking', 'chat', 'gossip', 'argue', 'arguing', 'fight', 'fighting', 'bully', 'bullying', 'tease', 'teasing', 'mock', 'laugh', 'ignore', 'ignoring'],
         characters: ['neko', 'nekomimi', 'catgirl', 'catboy', 'cat', 'foxgirl', 'foxboy', 'kitsune', 'fox', 'wolfgirl', 'wolfboy', 'wolf', 'bunnygirl', 'bunnyboy', 'rabbit', 'doggirl', 'dogboy', 'inu', 'maid', 'butler', 'servant', 'loli', 'shota', 'oppai', 'flat', 'petite', 'tall', 'short', 'tsundere', 'yandere', 'kuudere', 'dandere', 'deredere', 'himedere', 'idol', 'singer', 'musician', 'schoolgirl', 'schoolboy', 'student', 'teacher', 'sensei', 'senpai', 'kouhai', 'cosplay', 'costume', 'uniform', 'chibi', 'kawaii', 'cute', 'adorable', 'beautiful', 'pretty', 'handsome', 'cool', 'goth', 'emo', 'punk', 'gyaru', 'tomboy', 'femboy', 'trap', 'magicalgirl', 'mahou', 'witch', 'mage', 'wizard', 'samurai', 'ninja', 'knight', 'warrior', 'fighter', 'hero', 'villain', 'demon', 'angel', 'vampire', 'succubus', 'elf', 'fairy', 'mermaid', 'monster', 'slime', 'dragon', 'waifu', 'husbando', 'best', 'favorite'],
         reactions: ['thumbsup', 'thumbsdown', 'ok', 'okay', 'yes', 'yeah', 'yep', 'no', 'nope', 'nah', 'maybe', 'perhaps', 'idk', 'what', 'huh', 'eh', 'why', 'how', 'when', 'where', 'wtf', 'wth', 'lol', 'lmao', 'rofl', 'lmfao', 'omg', 'omfg', 'wow', 'whoa', 'woah', 'damn', 'dang', 'oops', 'oof', 'yikes', 'yeet', 'rip', 'f', 'bruh', 'bro', 'dude', 'eyeroll', 'sarcastic', 'deadpan', 'unimpressed', 'meh', 'whatever', 'hmm', 'hmph', 'tch', 'ugh', 'eww', 'gross', 'cringe', 'gasp', 'sneeze', 'sniff', 'blessyou', 'pout', 'smug', 'cheer', 'cheering', 'celebrate', 'celebrating', 'clap', 'clapping', 'applause', 'applaud', 'yay', 'woo', 'hype', 'pump', 'fistbump', 'highfive'],
@@ -60,6 +62,7 @@ export default {
         '/gif/hug',
         '/gif/pat',
         '/gif/kiss',
+        '/search?q=backflip',
         '/nsfw/hentai',
         '/nsfw/oppai',
         '/search?q=blush',
@@ -69,113 +72,166 @@ export default {
   }
 };
 
-async function handleCategoryGif(category, nsfw, experimental, env, corsHeaders) {
+async function handleCategoryGif(category, nsfw, experimental, detectAnime, env, corsHeaders) {
   try {
     const animeQuery = `anime ${category}`;
     
-    const sources = ['gelbooru', 'gfycat', 'waifupics', 'nekosbest', 'nekoslife', 'purrbot', 'waifuim', 'shinkaiio', 'uwunetwork', 'nekolove', 'kawaiired', 'animechan', 'nekosapi', 'animeapi',];
-    if (nsfw) sources.push('rule34', 'redgifs', 'hmtai', 'danbooru', 'yandere', 'purbotnsfw', 'waifuimnsfw', 'nekobotapi', 'nsfwapi', 'hentaifox', 'sankaku', 'xbooru')
+    let gif = nsfw
+      ? await getRandomPurrbotNsfw(category, env)
+      : await getRandomPurrbot(category, nsfw, env);
+
+    if (gif && !(await isLikelyLoadableMedia(gif.url))) {
+      gif = null;
+    }
+
+    const sources = ['gelbooru', 'gfycat', 'tenor', 'waifupics', 'nekosbest', 'nekoslife', 'waifuim', 'shinkaiio', 'uwunetwork', 'nekolove', 'kawaiired', 'animechan', 'nekosapi', 'animeapi', 'imgur', 'pixivbooru', 'zerochan', 'animepictures', 'waifuit', 'nekosfun', 'otakugif', 'nekosapialt'];
+    if (nsfw) sources.push('rule34', 'redgifs', 'hmtai', 'danbooru', 'yandere', 'waifuimnsfw', 'nekobotapi', 'nsfwapi', 'hentaifox', 'sankaku', 'xbooru', 'lolibooru', 'tbib', 'realbooru')
     if (experimental) sources.push('experimental');
+    
+    if (!gif) {
+      const shuffledSources = [...sources].sort(() => Math.random() - 0.5);
 
-    const selectedSource = sources[Math.floor(Math.random() * sources.length)];
-    let gif;
+      for (const selectedSource of shuffledSources) {
+        switch (selectedSource) {
+        case 'gelbooru':
+          gif = await getRandomGelbooru(category, nsfw, env);
+          break;
+        case 'waifupics':
+          gif = await getRandomWaifuPics(category, nsfw, env);
+          break;
+        case 'nekosbest':
+          gif = await getRandomNekosBest(category, nsfw, env);
+          break;
+        case 'nekoslife':
+          gif = await getRandomNekosLife(category, nsfw, env);
+          break;
+        case 'waifuim':
+          gif = await getRandomWaifuIm(category, nsfw, env);
+          break;
+        case 'waifuimnsfw':
+          gif = await getRandomWaifuImNsfw(category, env);
+          break;
+        case 'shinkaiio':
+          gif = await getRandomShinkai(category, nsfw, env);
+          break;
+        case 'uwunetwork':
+          gif = await getRandomUwuNetwork(category, nsfw, env);
+          break;
+        case 'hmtai':
+          gif = await getRandomHmtai(category, env);
+          break;
+        case 'danbooru':
+          gif = await getRandomDanbooru(category, env);
+          break;
+        case 'yandere':
+          gif = await getRandomYandere(category, env);
+          break;
+        case 'redgifs':
+          gif = await getRandomRedgifs(animeQuery, env);
+          break;
+        case 'gfycat':
+          gif = await getRandomGfycat(animeQuery, env);
+          break;
+        case 'tenor':
+          gif = await getRandomTenor(animeQuery, env);
+          break;
+        case 'rule34':
+          gif = await getRandomRule34(category, env);
+          break;
+        case 'experimental':
+          gif = await getRandomExperimental(category, nsfw, env);
+          break;
+        case 'gifscom':
+          gif = await getRandomGifsCom(animeQuery, env);
+          break;
+        case 'nekolove':
+          gif = await getRandomNekoLove(category, nsfw, env);
+          break;
+        case 'kawaiired':
+          gif = await getRandomKawaii(category, nsfw, env);
+          break;
+        case 'animechan':
+          gif = await getRandomAnimechan(category, nsfw, env);
+          break;
+        case 'nekosapi':
+          gif = await getRandomNekosApi(category, nsfw, env);
+          break;
+        case 'animeapi':
+          gif = await getRandomAnimeApi(category, nsfw, env);
+          break;
+        case 'giphy':
+          gif = await getRandomGiphy(animeQuery, env);
+          break;
+        case 'nekobotapi':
+          gif = await getRandomNekoBotApi(category, env);
+          break;
+        case 'nsfwapi':
+          gif = await getRandomNsfwApi(category, env);
+          break;
+        case 'hentaifox':
+          gif = await getRandomHentaiFox(category, env);
+          break;
+        case 'sankaku':
+          gif = await getRandomSankaku(category, env);
+          break;
+        case 'xbooru':
+          gif = await getRandomXbooru(category, env);
+          break;
+        case 'imgur':
+          gif = await getRandomImgur(animeQuery, env);
+          break;
+        case 'pixivbooru':
+          gif = await getRandomPixivBooru(category, env);
+          break;
+        case 'zerochan':
+          gif = await getRandomZerochan(category, nsfw, env);
+          break;
+        case 'animepictures':
+          gif = await getRandomAnimePictures(category, nsfw, env);
+          break;
+        case 'waifuit':
+          gif = await getRandomWaifuIt(category, nsfw, env);
+          break;
+        case 'nekosfun':
+          gif = await getRandomNekosFun(category, nsfw, env);
+          break;
+        case 'otakugif':
+          gif = await getRandomOtakuGif(category, nsfw, env);
+          break;
+        case 'nekosapialt':
+          gif = await getRandomNekosApiAlt(category, nsfw, env);
+          break;
+        case 'lolibooru':
+          gif = await getRandomLolibooru(category, env);
+          break;
+        case 'tbib':
+          gif = await getRandomTbib(category, env);
+          break;
+        case 'realbooru':
+          gif = await getRandomRealbooru(category, env);
+          break;
+        default:
+          gif = await getRandomGelbooru(category, nsfw, env);
+        }
 
-    switch (selectedSource) {
-      case 'gelbooru':
-        gif = await getRandomGelbooru(category, nsfw, env);
-        break;
-      case 'waifupics':
-        gif = await getRandomWaifuPics(category, nsfw, env);
-        break;
-      case 'nekosbest':
-        gif = await getRandomNekosBest(category, nsfw, env);
-        break;
-      case 'nekoslife':
-        gif = await getRandomNekosLife(category, nsfw, env);
-        break;
-      case 'purrbot':
-        gif = await getRandomPurrbot(category, nsfw, env);
-        break;
-      case 'purbotnsfw':
-        gif = await getRandomPurrbotNsfw(category, env);
-        break;
-      case 'waifuim':
-        gif = await getRandomWaifuIm(category, nsfw, env);
-        break;
-      case 'waifuimnsfw':
-        gif = await getRandomWaifuImNsfw(category, env);
-        break;
-      case 'shinkaiio':
-        gif = await getRandomShinkai(category, nsfw, env);
-        break;
-      case 'uwunetwork':
-        gif = await getRandomUwuNetwork(category, nsfw, env);
-        break;
-      case 'hmtai':
-        gif = await getRandomHmtai(category, env);
-        break;
-      case 'danbooru':
-        gif = await getRandomDanbooru(category, env);
-        break;
-      case 'yandere':
-        gif = await getRandomYandere(category, env);
-        break;
-      case 'redgifs':
-        gif = await getRandomRedgifs(animeQuery, env);
-        break;
-      case 'gfycat':
-        gif = await getRandomGfycat(animeQuery, env);
-        break;
-      case 'rule34':
-        gif = await getRandomRule34(category, env);
-        break;
-      case 'experimental':
-        gif = await getRandomExperimental(category, nsfw, env);
-        break;
-      case 'gifscom':
-        gif = await getRandomGifsCom(animeQuery, env);
-        break;
-      case 'nekolove':
-        gif = await getRandomNekoLove(category, nsfw, env);
-        break;
-      case 'kawaiired':
-        gif = await getRandomKawaii(category, nsfw, env);
-        break;
-      case 'animechan':
-        gif = await getRandomAnimechan(category, nsfw, env);
-        break;
-      case 'nekosapi':
-        gif = await getRandomNekosApi(category, nsfw, env);
-        break;
-      case 'animeapi':
-        gif = await getRandomAnimeApi(category, nsfw, env);
-        break;
-      case 'giphy':
-        gif = await getRandomGiphy(animeQuery, env);
-        break;
-      case 'nekobotapi':
-        gif = await getRandomNekoBotApi(category, env);
-        break;
-      case 'nsfwapi':
-        gif = await getRandomNsfwApi(category, env);
-        break;
-      case 'hentaifox':
-        gif = await getRandomHentaiFox(category, env);
-        break;
-      case 'sankaku':
-        gif = await getRandomSankaku(category, env);
-        break;
-      case 'xbooru':
-        gif = await getRandomXbooru(category, env);
-        break;
-      default:
-        gif = await getRandomGelbooru(category, nsfw, env);
+        if (gif && await isLikelyLoadableMedia(gif.url)) {
+          break;
+        }
+
+        gif = null;
+      }
     }
 
     if (!gif) {
       const results = await searchAllSources(animeQuery, 20, nsfw, experimental, env);
       if (results.length > 0) {
-        gif = results[Math.floor(Math.random() * results.length)];
+        const shuffledResults = [...results].sort(() => Math.random() - 0.5);
+        for (const candidate of shuffledResults) {
+          if (await isLikelyLoadableMedia(candidate.url)) {
+            gif = candidate;
+            break;
+          }
+        }
       }
     }
 
@@ -189,13 +245,25 @@ async function handleCategoryGif(category, nsfw, experimental, env, corsHeaders)
 
     const proxiedUrl = `https://api.phawse.lol/proxy/${encodeURIComponent(gif.url)}`;
 
-    return jsonResponse({
+    const response = {
       category: category,
       nsfw: gif.nsfw || nsfw,
       url: proxiedUrl,
       original_url: gif.url,
       source: gif.source
-    }, corsHeaders);
+    };
+
+    if (detectAnime) {
+      const animeInfo = await detectAnimeFromGif(gif.url);
+      if (animeInfo) {
+        response.anime = animeInfo.title;
+        response.anime_romaji = animeInfo.title_romaji;
+        response.anime_episode = animeInfo.episode;
+        response.anime_confidence = animeInfo.similarity;
+      }
+    }
+
+    return jsonResponse(response, corsHeaders);
   } catch (error) {
     return jsonResponse({
       error: 'Failed to fetch anime gif',
@@ -204,13 +272,13 @@ async function handleCategoryGif(category, nsfw, experimental, env, corsHeaders)
   }
 }
 
-async function handleRandomGif(nsfw, experimental, env, corsHeaders) {
+async function handleRandomGif(nsfw, experimental, detectAnime, env, corsHeaders) {
   const categories = nsfw 
     ? ['hentai', 'oppai', 'ecchi', 'lewd', 'boobs', 'ass', 'yuri']
     : ['happy', 'hug', 'kiss', 'pat', 'wave', 'smile', 'blush', 'dance', 'laugh'];
   
   const category = categories[Math.floor(Math.random() * categories.length)];
-  return handleCategoryGif(category, nsfw, experimental, env, corsHeaders);
+  return handleCategoryGif(category, nsfw, experimental, detectAnime, env, corsHeaders);
 }
 
 async function handleProxy(encodedUrl, corsHeaders) {
@@ -246,7 +314,7 @@ async function handleProxy(encodedUrl, corsHeaders) {
   }
 }
 
-async function handleSearch(url, env, corsHeaders, experimental) {
+async function handleSearch(url, env, corsHeaders, experimental, detectAnime) {
   const query = url.searchParams.get('q');
   const limit = parseInt(url.searchParams.get('limit') || '50');
   const nsfw = url.searchParams.get('nsfw') === 'true';
@@ -259,17 +327,32 @@ async function handleSearch(url, env, corsHeaders, experimental) {
     const animeQuery = `anime ${query}`;
     const results = await searchAllSources(animeQuery, limit, nsfw, experimental, env);
 
+    const mappedResults = results.map(r => ({
+      url: `https://api.phawse.lol/proxy/${encodeURIComponent(r.url)}`,
+      original_url: r.url,
+      source: r.source,
+      tags: r.tags,
+      nsfw: r.nsfw
+    }));
+
+    if (detectAnime && mappedResults.length > 0) {
+      const detectionPromises = mappedResults.slice(0, 5).map(async (result) => {
+        const animeInfo = await detectAnimeFromGif(result.original_url);
+        if (animeInfo) {
+          result.anime = animeInfo.title;
+          result.anime_romaji = animeInfo.title_romaji;
+          result.anime_confidence = animeInfo.similarity;
+        }
+        return result;
+      });
+      await Promise.all(detectionPromises);
+    }
+
     return jsonResponse({
       query,
       nsfw,
       count: results.length,
-      results: results.map(r => ({
-        url: `https://api.phawse.lol/proxy/${encodeURIComponent(r.url)}`,
-        original_url: r.url,
-        source: r.source,
-        tags: r.tags,
-        nsfw: r.nsfw
-      }))
+      results: mappedResults
     }, corsHeaders);
   } catch (error) {
     return jsonResponse({
@@ -277,6 +360,64 @@ async function handleSearch(url, env, corsHeaders, experimental) {
       message: error.message
     }, corsHeaders, 500);
   }
+}
+
+async function fetchWithTimeout(resource, options = {}, timeoutMs = 8000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(resource, {
+      ...options,
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function isLikelyLoadableMedia(mediaUrl) {
+  if (!mediaUrl || typeof mediaUrl !== 'string' || !mediaUrl.startsWith('http')) {
+    return false;
+  }
+
+  try {
+    const headRes = await fetchWithTimeout(mediaUrl, {
+      method: 'HEAD',
+      redirect: 'follow',
+      headers: {
+        'User-Agent': 'PhawseAPI/2.0',
+        'Accept': 'image/gif,image/*;q=0.9,*/*;q=0.8'
+      }
+    }, 7000);
+
+    if (headRes.ok) {
+      const contentType = (headRes.headers.get('content-type') || '').toLowerCase();
+      if (contentType.startsWith('image/')) return true;
+    }
+  } catch (error) {
+  }
+
+  try {
+    const getRes = await fetchWithTimeout(mediaUrl, {
+      method: 'GET',
+      redirect: 'follow',
+      headers: {
+        'User-Agent': 'PhawseAPI/2.0',
+        'Accept': 'image/gif,image/*;q=0.9,*/*;q=0.8',
+        'Range': 'bytes=0-1024'
+      }
+    }, 9000);
+
+    if (!getRes.ok) return false;
+
+    const contentType = (getRes.headers.get('content-type') || '').toLowerCase();
+    if (contentType.startsWith('image/')) return true;
+  } catch (error) {
+    return false;
+  }
+
+  return false;
 }
 
 async function getRandomExperimental(category, nsfw, env) {
@@ -477,7 +618,19 @@ async function searchAllSources(query, limit, nsfw, experimental, env) {
     searches.push(searchNsfwApi(query, limit, env).catch(() => []));
     searches.push(searchSankaku(query, limit, env).catch(() => []));
     searches.push(searchXbooru(query, limit, env).catch(() => []));
+    searches.push(searchLolibooru(query, limit, env).catch(() => []));
+    searches.push(searchTbib(query, limit, env).catch(() => []));
+    searches.push(searchRealbooru(query, limit, env).catch(() => []));
   }
+  
+  searches.push(searchImgur(query, limit, env).catch(() => []));
+  searches.push(searchPixivBooru(query, limit, env).catch(() => []));
+  searches.push(searchZerochan(query, limit, nsfw, env).catch(() => []));
+  searches.push(searchAnimePictures(query, limit, nsfw, env).catch(() => []));
+  searches.push(searchWaifuIt(query, limit, nsfw, env).catch(() => []));
+  searches.push(searchNekosFun(query, limit, nsfw, env).catch(() => []));
+  searches.push(searchOtakuGif(query, limit, nsfw, env).catch(() => []));
+  searches.push(searchNekosApiAlt(query, limit, nsfw, env).catch(() => []));
 
   if (experimental) {
     searches.push(searchExperimental(query, limit, nsfw, env).catch(() => []));
@@ -715,6 +868,11 @@ async function searchTenor(query, limit, env) {
       source: 'tenor',
       id: gif.id
     }));
+}
+
+async function getRandomTenor(category, env) {
+  const results = await searchTenor(category, 50, env);
+  return results.length > 0 ? results[Math.floor(Math.random() * results.length)] : null;
 }
 
 
@@ -1733,5 +1891,596 @@ async function searchXbooru(query, limit, env) {
       }));
   } catch (error) {
     return [];
+  }
+}
+
+// Imgur API
+async function getRandomImgur(query, env) {
+  try {
+    const clientId = env.IMGUR_CLIENT_ID || 'b3625162d83605d';
+    const url = `https://api.imgur.com/3/gallery/search/time/all/0?q=${encodeURIComponent(query)}`;
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Client-ID ${clientId}` }
+    });
+    
+    if (!response.ok) return null;
+    const data = await response.json();
+    
+    if (!data.data || data.data.length === 0) return null;
+    
+    const gifs = data.data.filter(item => 
+      item.type === 'image/gif' || 
+      (item.images && item.images.some(img => img.type === 'image/gif'))
+    );
+    
+    if (gifs.length === 0) return null;
+    
+    const random = gifs[Math.floor(Math.random() * gifs.length)];
+    const gifUrl = random.images ? 
+      random.images.find(img => img.type === 'image/gif')?.link : 
+      random.link;
+    
+    if (!gifUrl) return null;
+    
+    return {
+      url: gifUrl,
+      preview: gifUrl,
+      tags: random.tags || [query],
+      source: 'imgur',
+      id: random.id,
+      nsfw: random.nsfw || false
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+async function searchImgur(query, limit, env) {
+  try {
+    const clientId = env.IMGUR_CLIENT_ID || 'b3625162d83605d';
+    const url = `https://api.imgur.com/3/gallery/search/time/all/0?q=${encodeURIComponent(query)}`;
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Client-ID ${clientId}` }
+    });
+    
+    if (!response.ok) return [];
+    const data = await response.json();
+    
+    const results = [];
+    for (const item of (data.data || []).slice(0, limit)) {
+      if (item.type === 'image/gif') {
+        results.push({
+          url: item.link,
+          preview: item.link,
+          tags: item.tags || [query],
+          source: 'imgur',
+          id: item.id,
+          nsfw: item.nsfw || false
+        });
+      } else if (item.images) {
+        for (const img of item.images) {
+          if (img.type === 'image/gif') {
+            results.push({
+              url: img.link,
+              preview: img.link,
+              tags: item.tags || [query],
+              source: 'imgur',
+              id: img.id,
+              nsfw: item.nsfw || false
+            });
+          }
+        }
+      }
+      if (results.length >= limit) break;
+    }
+    
+    return results;
+  } catch (error) {
+    return [];
+  }
+}
+
+// Pixiv Booru (anime-pictures.net)
+async function getRandomPixivBooru(category, env) {
+  try {
+    const url = `https://anime-pictures.net/api/posts?search_tag=${encodeURIComponent(category)}&type=gif&page=0&limit=50`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return null;
+    const data = await response.json();
+    
+    if (!data.posts || data.posts.length === 0) return null;
+    
+    const random = data.posts[Math.floor(Math.random() * data.posts.length)];
+    return {
+      url: `https://anime-pictures.net${random.file_url}`,
+      preview: `https://anime-pictures.net${random.preview_url}`,
+      tags: random.tags || [category],
+      source: 'anime-pictures',
+      id: random.id,
+      nsfw: random.rating !== 'safe'
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+async function searchPixivBooru(query, limit, env) {
+  try {
+    const url = `https://anime-pictures.net/api/posts?search_tag=${encodeURIComponent(query)}&type=gif&page=0&limit=${limit}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return [];
+    const data = await response.json();
+    
+    return (data.posts || []).map(post => ({
+      url: `https://anime-pictures.net${post.file_url}`,
+      preview: `https://anime-pictures.net${post.preview_url}`,
+      tags: post.tags || [query],
+      source: 'anime-pictures',
+      id: post.id,
+      nsfw: post.rating !== 'safe'
+    }));
+  } catch (error) {
+    return [];
+  }
+}
+
+// Zerochan API
+async function getRandomZerochan(category, nsfw, env) {
+  try {
+    const url = `https://www.zerochan.net/${encodeURIComponent(category)}?json`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return null;
+    const data = await response.json();
+    
+    if (!data.items || data.items.length === 0) return null;
+    
+    const gifs = data.items.filter(item => item.type === 'gif');
+    if (gifs.length === 0) return null;
+    
+    const random = gifs[Math.floor(Math.random() * gifs.length)];
+    return {
+      url: random.full,
+      preview: random.thumbnail,
+      tags: random.tags || [category],
+      source: 'zerochan',
+      id: random.id,
+      nsfw: nsfw
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+async function searchZerochan(query, limit, nsfw, env) {
+  try {
+    const url = `https://www.zerochan.net/${encodeURIComponent(query)}?json`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return [];
+    const data = await response.json();
+    
+    return (data.items || [])
+      .filter(item => item.type === 'gif')
+      .slice(0, limit)
+      .map(item => ({
+        url: item.full,
+        preview: item.thumbnail,
+        tags: item.tags || [query],
+        source: 'zerochan',
+        id: item.id,
+        nsfw: nsfw
+      }));
+  } catch (error) {
+    return [];
+  }
+}
+
+// Anime-Pictures API
+async function getRandomAnimePictures(category, nsfw, env) {
+  try {
+    const url = `https://api.anime-pictures.net/api/v3/posts?search_tag=${encodeURIComponent(category)}&type=animation&lang=en&page=0&limit=50`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return null;
+    const data = await response.json();
+    
+    if (!data.posts || data.posts.length === 0) return null;
+    
+    const random = data.posts[Math.floor(Math.random() * data.posts.length)];
+    return {
+      url: random.file_url,
+      preview: random.preview_url,
+      tags: random.tags_full || [category],
+      source: 'anime-pictures',
+      id: random.id,
+      nsfw: random.erotics > 0
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+async function searchAnimePictures(query, limit, nsfw, env) {
+  try {
+    const url = `https://api.anime-pictures.net/api/v3/posts?search_tag=${encodeURIComponent(query)}&type=animation&lang=en&page=0&limit=${limit}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return [];
+    const data = await response.json();
+    
+    return (data.posts || []).map(post => ({
+      url: post.file_url,
+      preview: post.preview_url,
+      tags: post.tags_full || [query],
+      source: 'anime-pictures',
+      id: post.id,
+      nsfw: post.erotics > 0
+    }));
+  } catch (error) {
+    return [];
+  }
+}
+
+// Waifu.it API
+async function getRandomWaifuIt(category, nsfw, env) {
+  try {
+    const url = `https://waifu.it/api/v4/${nsfw ? 'nsfw' : 'sfw'}/${category}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return null;
+    const data = await response.json();
+    
+    if (data.url && data.url.endsWith('.gif')) {
+      return {
+        url: data.url,
+        preview: data.url,
+        tags: data.tags || [category],
+        source: 'waifu.it',
+        nsfw: nsfw
+      };
+    }
+    return null;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function searchWaifuIt(query, limit, nsfw, env) {
+  const results = [];
+  const categories = ['hug', 'kiss', 'slap', 'pat', 'poke', 'cuddle', 'neko', 'waifu', 'smile', 'blush'];
+  
+  for (const cat of categories) {
+    if (results.length >= limit) break;
+    if (!cat.includes(query.toLowerCase()) && !query.toLowerCase().includes(cat)) continue;
+    
+    try {
+      const gif = await getRandomWaifuIt(cat, nsfw, env);
+      if (gif) results.push(gif);
+    } catch (err) {
+      continue;
+    }
+  }
+  return results;
+}
+
+// Nekos.fun API
+async function getRandomNekosFun(category, nsfw, env) {
+  try {
+    const url = `https://nekos.fun/api/${category}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return null;
+    const data = await response.json();
+    
+    const gifUrl = data.image || data.url;
+    if (gifUrl && gifUrl.endsWith('.gif')) {
+      return {
+        url: gifUrl,
+        preview: gifUrl,
+        tags: [category],
+        source: 'nekos.fun',
+        nsfw: nsfw
+      };
+    }
+    return null;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function searchNekosFun(query, limit, nsfw, env) {
+  const results = [];
+  const categories = ['hug', 'kiss', 'slap', 'pat', 'tickle', 'neko', 'kitsune', 'smug', 'baka'];
+  
+  for (const cat of categories) {
+    if (results.length >= limit) break;
+    if (!cat.includes(query.toLowerCase()) && !query.toLowerCase().includes(cat)) continue;
+    
+    try {
+      const gif = await getRandomNekosFun(cat, nsfw, env);
+      if (gif) results.push(gif);
+    } catch (err) {
+      continue;
+    }
+  }
+  return results;
+}
+
+// OtakuGif API
+async function getRandomOtakuGif(category, nsfw, env) {
+  try {
+    const url = `https://api.otakugifs.xyz/gif?reaction=${encodeURIComponent(category)}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return null;
+    const data = await response.json();
+    
+    if (data.url && data.url.endsWith('.gif')) {
+      return {
+        url: data.url,
+        preview: data.url,
+        tags: [category],
+        source: 'otakugifs',
+        nsfw: nsfw
+      };
+    }
+    return null;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function searchOtakuGif(query, limit, nsfw, env) {
+  const results = [];
+  const reactions = ['hug', 'kiss', 'slap', 'cuddle', 'poke', 'pat', 'tickle', 'bite', 'lick', 'nom'];
+  
+  for (const reaction of reactions) {
+    if (results.length >= limit) break;
+    if (!reaction.includes(query.toLowerCase()) && !query.toLowerCase().includes(reaction)) continue;
+    
+    try {
+      const gif = await getRandomOtakuGif(reaction, nsfw, env);
+      if (gif) results.push(gif);
+    } catch (err) {
+      continue;
+    }
+  }
+  return results;
+}
+
+// NekosAPI Alternative
+async function getRandomNekosApiAlt(category, nsfw, env) {
+  try {
+    const url = `https://nekos-api.onrender.com/${nsfw ? 'nsfw' : 'sfw'}/${category}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return null;
+    const data = await response.json();
+    
+    const gifUrl = data.url || data.image;
+    if (gifUrl && gifUrl.endsWith('.gif')) {
+      return {
+        url: gifUrl,
+        preview: gifUrl,
+        tags: [category],
+        source: 'nekos-api-alt',
+        nsfw: nsfw
+      };
+    }
+    return null;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function searchNekosApiAlt(query, limit, nsfw, env) {
+  const results = [];
+  const categories = ['hug', 'kiss', 'slap', 'pat', 'cuddle', 'neko', 'waifu', 'tickle'];
+  
+  for (const cat of categories) {
+    if (results.length >= limit) break;
+    if (!cat.includes(query.toLowerCase()) && !query.toLowerCase().includes(cat)) continue;
+    
+    try {
+      const gif = await getRandomNekosApiAlt(cat, nsfw, env);
+      if (gif) results.push(gif);
+    } catch (err) {
+      continue;
+    }
+  }
+  return results;
+}
+
+// Lolibooru API (NSFW)
+async function getRandomLolibooru(category, env) {
+  try {
+    const url = `https://lolibooru.moe/post/index.json?tags=animated+${encodeURIComponent(category)}&limit=50`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return null;
+    const data = await response.json();
+    
+    if (!Array.isArray(data) || data.length === 0) return null;
+    
+    const gifs = data.filter(post => post.file_url?.endsWith('.gif'));
+    if (gifs.length === 0) return null;
+    
+    const random = gifs[Math.floor(Math.random() * gifs.length)];
+    return {
+      url: random.file_url,
+      preview: random.preview_url,
+      tags: random.tags ? random.tags.split(' ') : [category],
+      source: 'lolibooru',
+      id: random.id,
+      nsfw: true
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+async function searchLolibooru(query, limit, env) {
+  try {
+    const url = `https://lolibooru.moe/post/index.json?tags=animated+${encodeURIComponent(query)}&limit=${limit}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return [];
+    const data = await response.json();
+    
+    return (Array.isArray(data) ? data : [])
+      .filter(post => post.file_url?.endsWith('.gif'))
+      .map(post => ({
+        url: post.file_url,
+        preview: post.preview_url,
+        tags: post.tags ? post.tags.split(' ') : [query],
+        source: 'lolibooru',
+        id: post.id,
+        nsfw: true
+      }));
+  } catch (error) {
+    return [];
+  }
+}
+
+// The Big ImageBoard (TBIB) API (NSFW)
+async function getRandomTbib(category, env) {
+  try {
+    const url = `https://tbib.org/index.php?page=dapi&s=post&q=index&tags=animated+${encodeURIComponent(category)}&limit=50&json=1`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return null;
+    const data = await response.json();
+    
+    const posts = Array.isArray(data) ? data : [];
+    if (posts.length === 0) return null;
+    
+    const gifs = posts.filter(post => post.image?.endsWith('.gif'));
+    if (gifs.length === 0) return null;
+    
+    const random = gifs[Math.floor(Math.random() * gifs.length)];
+    return {
+      url: `https://tbib.org/images/${random.directory}/${random.image}`,
+      preview: `https://tbib.org/thumbnails/${random.directory}/thumbnail_${random.image}`,
+      tags: (random.tags || '').split(' '),
+      source: 'tbib',
+      id: random.id,
+      nsfw: true
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+async function searchTbib(query, limit, env) {
+  try {
+    const url = `https://tbib.org/index.php?page=dapi&s=post&q=index&tags=animated+${encodeURIComponent(query)}&limit=${limit}&json=1`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return [];
+    const data = await response.json();
+    
+    const posts = Array.isArray(data) ? data : [];
+    return posts
+      .filter(post => post.image?.endsWith('.gif'))
+      .map(post => ({
+        url: `https://tbib.org/images/${post.directory}/${post.image}`,
+        preview: `https://tbib.org/thumbnails/${post.directory}/thumbnail_${post.image}`,
+        tags: (post.tags || '').split(' '),
+        source: 'tbib',
+        id: post.id,
+        nsfw: true
+      }));
+  } catch (error) {
+    return [];
+  }
+}
+
+// Realbooru API (NSFW - real content, not anime)
+async function getRandomRealbooru(category, env) {
+  try {
+    const url = `https://realbooru.com/index.php?page=dapi&s=post&q=index&tags=animated+${encodeURIComponent(category)}&limit=50&json=1`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return null;
+    const data = await response.json();
+    
+    const posts = Array.isArray(data) ? data : (data.post || []);
+    if (posts.length === 0) return null;
+    
+    const gifs = posts.filter(post => post.image?.endsWith('.gif'));
+    if (gifs.length === 0) return null;
+    
+    const random = gifs[Math.floor(Math.random() * gifs.length)];
+    return {
+      url: `https://realbooru.com/images/${random.directory}/${random.image}`,
+      preview: `https://realbooru.com/thumbnails/${random.directory}/thumbnail_${random.image}`,
+      tags: (random.tags || '').split(' '),
+      source: 'realbooru',
+      id: random.id,
+      nsfw: true
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+async function searchRealbooru(query, limit, env) {
+  try {
+    const url = `https://realbooru.com/index.php?page=dapi&s=post&q=index&tags=animated+${encodeURIComponent(query)}&limit=${limit}&json=1`;
+    const response = await fetch(url);
+    
+    if (!response.ok) return [];
+    const data = await response.json();
+    
+    const posts = Array.isArray(data) ? data : (data.post || []);
+    return posts
+      .filter(post => post.image?.endsWith('.gif'))
+      .map(post => ({
+        url: `https://realbooru.com/images/${post.directory}/${post.image}`,
+        preview: `https://realbooru.com/thumbnails/${post.directory}/thumbnail_${post.image}`,
+        tags: (post.tags || '').split(' '),
+        source: 'realbooru',
+        id: post.id,
+        nsfw: true
+      }));
+  } catch (error) {
+    return [];
+  }
+}
+
+// Anime Detection using trace.moe API
+async function detectAnimeFromGif(gifUrl) {
+  try {
+    // trace.moe accepts direct image URLs
+    const url = `https://api.trace.moe/search?anilistInfo&url=${encodeURIComponent(gifUrl)}`;
+    
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    
+    const data = await response.json();
+    
+    // Get the best match (highest similarity)
+    if (!data.result || data.result.length === 0) return null;
+    
+    const bestMatch = data.result[0];
+    
+    // Only return if confidence is decent (above 85%)
+    if (bestMatch.similarity < 0.85) return null;
+    
+    return {
+      title: bestMatch.anilist?.title?.english || bestMatch.anilist?.title?.native || bestMatch.filename,
+      title_romaji: bestMatch.anilist?.title?.romaji,
+      title_native: bestMatch.anilist?.title?.native,
+      episode: bestMatch.episode,
+      similarity: Math.round(bestMatch.similarity * 100),
+      timestamp: bestMatch.from,
+      anilist_id: bestMatch.anilist?.id,
+      mal_id: bestMatch.anilist?.idMal
+    };
+  } catch (error) {
+    return null;
   }
 }
