@@ -7,9 +7,18 @@ const CORS_HEADERS = {
 const CATEGORY_FAMILIES = {
 	disgust: ['disgust', 'disgusted', 'gross', 'ew', 'eww'],
 	cringe: ['cringe', 'cringy', 'cringey'],
+	facepalm: ['facepalm'],
+	pout: ['pout', 'pouting'],
+	nope: ['nope'],
+	shrug: ['shrug', 'shrugging'],
+	bored: ['bored'],
+	smug: ['smug'],
+	poke: ['poke', 'poking'],
+	stare: ['stare', 'staring'],
+	yeet: ['yeet'],
 	lewd: ['lewd', 'nsfw'],
 	hentai: ['hentai', 'ecchi'],
-	blowjob: ['blowjob', 'bj', 'fellatio'],
+	blowjob: ['blowjob', 'bj', 'fellatio', 'suck', 'sucking', 'sex'],
 	trap: ['trap'],
 	neko: ['neko'],
 	waifu: ['waifu'],
@@ -63,6 +72,16 @@ const SFW_PROVIDER_MAP = {
 		supportsAliasTags: true,
 		supportedTags: ['hug', 'kiss', 'slap', 'pat', 'poke', 'wave', 'smile', 'highfive', 'handshake', 'bite', 'blush', 'bored', 'cry', 'dance', 'facepalm', 'feed', 'happy', 'laugh', 'nod', 'nom', 'nope', 'pout', 'shrug', 'sleep', 'smug', 'stare', 'think', 'thumbsup', 'tickle', 'wink', 'yawn', 'yeet'],
 		canonicalToSource: {
+			disgust: 'facepalm',
+			facepalm: 'facepalm',
+			pout: 'pout',
+			nope: 'nope',
+			shrug: 'shrug',
+			bored: 'bored',
+			smug: 'smug',
+			poke: 'poke',
+			stare: 'stare',
+			yeet: 'yeet',
 			hug: 'hug',
 			kiss: 'kiss',
 			pat: 'pat',
@@ -86,6 +105,15 @@ const SFW_PROVIDER_MAP = {
 		supportsAliasTags: true,
 		supportedTags: ['baka', 'bite', 'blush', 'bored', 'cry', 'cuddle', 'dance', 'facepalm', 'feed', 'handhold', 'happy', 'highfive', 'hug', 'kick', 'kiss', 'laugh', 'lick', 'nom', 'pat', 'poke', 'pout', 'punch', 'shoot', 'shrug', 'slap', 'sleep', 'smile', 'smug', 'stare', 'tickle', 'wave', 'wink', 'yeet'],
 		canonicalToSource: {
+			disgust: 'facepalm',
+			facepalm: 'facepalm',
+			pout: 'pout',
+			shrug: 'shrug',
+			bored: 'bored',
+			smug: 'smug',
+			poke: 'poke',
+			stare: 'stare',
+			yeet: 'yeet',
 			hug: 'hug',
 			kiss: 'kiss',
 			pat: 'pat',
@@ -151,6 +179,8 @@ const NSFW_PROVIDER_MAP = {
 		supportsAliasTags: true,
 		supportedTags: ['waifu', 'neko', 'trap', 'blowjob'],
 		canonicalToSource: {
+			sex: 'blowjob',
+			suck: 'blowjob',
 			waifu: 'waifu',
 			neko: 'neko',
 			trap: 'trap',
@@ -321,46 +351,19 @@ async function fromKawaiiRed(sourceTag, categoryInfo, nsfw) {
 	return toResult({ categoryInfo, sourceTag, sourceName: 'kawaii.red', url, nsfw: false });
 }
 
-async function fromTenorSearch(categoryInfo, nsfw, env) {
-	if (nsfw) return null;
-	const key = env.TENOR_API_KEY || 'LIVDSRZULELA';
-	for (const tag of categoryInfo.aliases) {
-		const q = encodeURIComponent(`anime ${tag} reaction`);
-		const data = await fetchJsonWithTimeout(`https://tenor.googleapis.com/v2/search?q=${q}&key=${key}&limit=10&media_filter=gif`);
-		const items = Array.isArray(data?.results) ? data.results : [];
-		for (const item of items) {
-			const url = item?.media_formats?.gif?.url || item?.media?.[0]?.gif?.url;
-			const text = `${item?.title || ''} ${item?.content_description || ''}`;
-			if (!url || !String(url).toLowerCase().includes('http')) continue;
-			if (!categoryFamilyIncludes(categoryInfo, `${text} ${tag}`)) continue;
-			return toResult({ categoryInfo, sourceTag: tag, sourceName: 'tenor', url, nsfw: false });
-		}
-	}
-	return null;
-}
-
-async function fromGiphySearch(categoryInfo, nsfw, env) {
-	if (nsfw) return null;
-	const apiKey = env.GIPHY_API_KEY || 'dc6zaTOxFJmzC';
-
-	for (const tag of categoryInfo.aliases) {
-		const q = encodeURIComponent(`anime ${tag} reaction`);
-		const data = await fetchJsonWithTimeout(`https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${q}&limit=10&rating=pg-13`);
-		const items = Array.isArray(data?.data) ? data.data : [];
-		for (const item of items) {
-			const url = item?.images?.original?.url || item?.images?.downsized?.url;
-			const text = `${item?.title || ''} ${item?.slug || ''}`;
-			if (!url || !String(url).toLowerCase().includes('http')) continue;
-			if (!categoryFamilyIncludes(categoryInfo, `${text} ${tag}`)) continue;
-			return toResult({ categoryInfo, sourceTag: tag, sourceName: 'giphy', url, nsfw: false });
-		}
-	}
-
-	return null;
-}
-
 function uniqueTags(values) {
 	return [...new Set(values.filter(Boolean).map(value => normalizeCategory(value)))];
+}
+
+function shuffleArray(values) {
+	const copy = [...values];
+	for (let index = copy.length - 1; index > 0; index--) {
+		const randomIndex = Math.floor(Math.random() * (index + 1));
+		const temp = copy[index];
+		copy[index] = copy[randomIndex];
+		copy[randomIndex] = temp;
+	}
+	return copy;
 }
 
 function buildProviderPlan(categoryInfo, nsfw) {
@@ -408,17 +411,11 @@ async function runProvider(provider, sourceTag, categoryInfo, nsfw, env) {
 }
 
 async function resolveGif(categoryInfo, nsfw, env) {
-	const plan = buildProviderPlan(categoryInfo, nsfw);
+	const plan = shuffleArray(buildProviderPlan(categoryInfo, nsfw));
 	for (const item of plan) {
 		const result = await runProvider(item.provider, item.sourceTag, categoryInfo, nsfw, env);
 		if (result) return result;
 	}
-
-	const searchFallback = await fromTenorSearch(categoryInfo, nsfw, env);
-	if (searchFallback) return searchFallback;
-
-	const giphyFallback = await fromGiphySearch(categoryInfo, nsfw, env);
-	if (giphyFallback) return giphyFallback;
 
 	return null;
 }
