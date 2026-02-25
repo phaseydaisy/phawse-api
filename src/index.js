@@ -7,6 +7,12 @@ const CORS_HEADERS = {
 const CATEGORY_FAMILIES = {
 	disgust: ['disgust', 'disgusted', 'gross', 'ew', 'eww'],
 	cringe: ['cringe', 'cringy', 'cringey'],
+	lewd: ['lewd', 'nsfw'],
+	hentai: ['hentai', 'ecchi'],
+	blowjob: ['blowjob', 'bj', 'fellatio'],
+	trap: ['trap'],
+	neko: ['neko'],
+	waifu: ['waifu'],
 	hug: ['hug', 'hugging'],
 	kiss: ['kiss', 'kissing'],
 	pat: ['pat', 'patting', 'headpat', 'pats'],
@@ -142,9 +148,20 @@ const SFW_PROVIDER_MAP = {
 
 const NSFW_PROVIDER_MAP = {
 	waifupics: {
+		supportsAliasTags: true,
+		supportedTags: ['waifu', 'neko', 'trap', 'blowjob'],
 		canonicalToSource: {
-			nsfw: 'waifu',
-			hentai: 'waifu'
+			waifu: 'waifu',
+			neko: 'neko',
+			trap: 'trap',
+			blowjob: 'blowjob'
+		}
+	},
+	nekoslife: {
+		supportsAliasTags: true,
+		supportedTags: ['lewd'],
+		canonicalToSource: {
+			lewd: 'lewd'
 		}
 	}
 };
@@ -190,6 +207,18 @@ function categoryFamilyIncludes(categoryInfo, text) {
 	return categoryInfo.aliases.some(alias => normalizedText.includes(alias));
 }
 
+function isLikelyImageOrGifUrl(url) {
+	if (!url || typeof url !== 'string') return false;
+	if (!url.startsWith('http')) return false;
+	const lower = url.toLowerCase();
+	return /\.(gif|jpg|jpeg|png|webp)(\?|$)/.test(lower);
+}
+
+function isLikelyGifUrl(url) {
+	if (!url || typeof url !== 'string') return false;
+	return /\.gif(\?|$)/i.test(url);
+}
+
 async function fetchJsonWithTimeout(resource, timeoutMs = 1800) {
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -229,7 +258,12 @@ function toResult({ categoryInfo, sourceTag, sourceName, url, nsfw }) {
 async function fromWaifuPics(sourceTag, categoryInfo, nsfw) {
 	const type = nsfw ? 'nsfw' : 'sfw';
 	const data = await fetchJsonWithTimeout(`https://api.waifu.pics/${type}/${sourceTag}`);
-	if (!data?.url || !String(data.url).toLowerCase().endsWith('.gif')) return null;
+	if (!data?.url) return null;
+	if (nsfw) {
+		if (!isLikelyImageOrGifUrl(data.url)) return null;
+	} else {
+		if (!isLikelyGifUrl(data.url)) return null;
+	}
 	return toResult({ categoryInfo, sourceTag, sourceName: 'waifu.pics', url: data.url, nsfw });
 }
 
@@ -268,11 +302,15 @@ async function fromAnimeApi(sourceTag, categoryInfo, nsfw) {
 }
 
 async function fromNekosLife(sourceTag, categoryInfo, nsfw) {
-	if (nsfw) return null;
 	const data = await fetchJsonWithTimeout(`https://nekos.life/api/v2/img/${encodeURIComponent(sourceTag)}`);
 	const url = data?.url;
-	if (!url || !String(url).toLowerCase().endsWith('.gif')) return null;
-	return toResult({ categoryInfo, sourceTag, sourceName: 'nekos.life', url, nsfw: false });
+	if (!url) return null;
+	if (nsfw) {
+		if (!isLikelyImageOrGifUrl(url)) return null;
+	} else {
+		if (!isLikelyGifUrl(url)) return null;
+	}
+	return toResult({ categoryInfo, sourceTag, sourceName: 'nekos.life', url, nsfw });
 }
 
 async function fromKawaiiRed(sourceTag, categoryInfo, nsfw) {
