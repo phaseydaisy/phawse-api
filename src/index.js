@@ -23,7 +23,7 @@ const CATEGORY_FAMILIES = {
 	yeet: ['yeet'],
 	lewd: ['lewd', 'nsfw'],
 	hentai: ['hentai', 'ecchi'],
-	blowjob: ['blowjob', 'bj', 'fellatio', 'suck', 'sucking', 'sex'],
+	blowjob: ['blowjob', 'bj', 'fellatio', 'suck', 'sucking'],
 	trap: ['trap'],
 	neko: ['neko'],
 	waifu: ['waifu'],
@@ -53,8 +53,10 @@ const CATEGORY_FAMILIES = {
 const SFW_PROVIDER_MAP = {
 	waifupics: {
 		supportsAliasTags: false,
-		supportedTags: ['cringe', 'hug', 'kiss', 'pat', 'poke', 'slap', 'smile', 'cry', 'wave', 'wink', 'dance', 'blush', 'kick', 'bite', 'lick', 'cuddle', 'highfive', 'handhold'],
+		supportedTags: ['waifu', 'neko', 'cringe', 'hug', 'kiss', 'pat', 'poke', 'slap', 'smile', 'cry', 'wave', 'wink', 'dance', 'blush', 'kick', 'bite', 'lick', 'cuddle', 'highfive', 'handhold'],
 		canonicalToSource: {
+			waifu: 'waifu',
+			neko: 'neko',
 			cringe: 'cringe',
 			hug: 'hug',
 			kiss: 'kiss',
@@ -78,8 +80,11 @@ const SFW_PROVIDER_MAP = {
 	},
 	nekosbest: {
 		supportsAliasTags: true,
-		supportedTags: ['hug', 'kiss', 'slap', 'pat', 'poke', 'wave', 'smile', 'highfive', 'handshake', 'bite', 'blush', 'bored', 'cry', 'dance', 'facepalm', 'feed', 'happy', 'laugh', 'nod', 'nom', 'nope', 'pout', 'shrug', 'sleep', 'smug', 'stare', 'think', 'thumbsup', 'tickle', 'wink', 'yawn', 'yeet', 'lurk', 'shoot'],
+		supportedTags: ['neko', 'waifu', 'angry', 'hug', 'kiss', 'slap', 'pat', 'poke', 'wave', 'smile', 'highfive', 'handshake', 'bite', 'blush', 'bored', 'cry', 'dance', 'facepalm', 'feed', 'happy', 'laugh', 'nod', 'nom', 'nope', 'pout', 'shrug', 'sleep', 'smug', 'stare', 'think', 'thumbsup', 'tickle', 'wink', 'yawn', 'yeet', 'lurk', 'shoot'],
 		canonicalToSource: {
+			neko: 'neko',
+			waifu: 'waifu',
+			angry: 'angry',
 			disgust: 'facepalm',
 			facepalm: 'facepalm',
 			pout: 'pout',
@@ -166,6 +171,8 @@ const SFW_PROVIDER_MAP = {
 		supportsAliasTags: true,
 		supportedTags: ['neko', 'hug', 'pat', 'kiss', 'slap', 'poke', 'tickle', 'feed', 'cuddle', 'fox_girl', 'waifu', 'smug'],
 		canonicalToSource: {
+			neko: 'neko',
+			waifu: 'waifu',
 			hug: 'hug',
 			kiss: 'kiss',
 			pat: 'pat',
@@ -180,6 +187,8 @@ const SFW_PROVIDER_MAP = {
 		supportsAliasTags: true,
 		supportedTags: ['hug', 'kiss', 'slap', 'pat', 'poke', 'cuddle', 'neko', 'waifu', 'smile', 'wave'],
 		canonicalToSource: {
+			neko: 'neko',
+			waifu: 'waifu',
 			hug: 'hug',
 			kiss: 'kiss',
 			slap: 'slap',
@@ -218,6 +227,29 @@ const SFW_PROVIDER_MAP = {
 			handhold: 'handhold'
 		}
 	},
+	purrbot: {
+		supportsAliasTags: true,
+		supportedTags: ['angry', 'bite', 'blush', 'cry', 'cuddle', 'dance', 'hug', 'kiss', 'lick', 'neko', 'pat', 'poke', 'pout', 'slap', 'smile', 'tickle'],
+		canonicalToSource: {
+			angry: 'angry',
+			bite: 'bite',
+			blush: 'blush',
+			boop: 'poke',
+			cry: 'cry',
+			cuddle: 'cuddle',
+			dance: 'dance',
+			hug: 'hug',
+			kiss: 'kiss',
+			lick: 'lick',
+			neko: 'neko',
+			pat: 'pat',
+			poke: 'poke',
+			pout: 'pout',
+			slap: 'slap',
+			smile: 'smile',
+			tickle: 'tickle'
+		}
+	},
 	tenor: {
 		supportsAliasTags: true,
 		canonicalToSource: {}
@@ -229,7 +261,6 @@ const NSFW_PROVIDER_MAP = {
 		supportsAliasTags: true,
 		supportedTags: ['waifu', 'neko', 'trap', 'blowjob'],
 		canonicalToSource: {
-			sex: 'blowjob',
 			suck: 'blowjob',
 			waifu: 'waifu',
 			neko: 'neko',
@@ -242,6 +273,14 @@ const NSFW_PROVIDER_MAP = {
 		supportedTags: ['lewd'],
 		canonicalToSource: {
 			lewd: 'lewd'
+		}
+	},
+	purrbot: {
+		supportsAliasTags: true,
+		supportedTags: ['blowjob', 'cum', 'neko'],
+		canonicalToSource: {
+			blowjob: 'blowjob',
+			neko: 'neko'
 		}
 	}
 };
@@ -299,6 +338,12 @@ function isLikelyGifUrl(url) {
 	return /\.gif(\?|$)/i.test(url);
 }
 
+function allowsImageForSfwCategory(categoryInfo, sourceTag) {
+	const canonical = normalizeCategory(categoryInfo?.canonical || '');
+	const tag = normalizeCategory(sourceTag || '');
+	return canonical === 'neko' || canonical === 'waifu' || tag === 'neko' || tag === 'waifu';
+}
+
 function isLikelyAnimeText(text) {
 	const normalized = normalizeCategory(text || '');
 	if (!normalized) return false;
@@ -349,7 +394,11 @@ async function fromWaifuPics(sourceTag, categoryInfo, nsfw) {
 	if (nsfw) {
 		if (!isLikelyImageOrGifUrl(data.url)) return null;
 	} else {
-		if (!isLikelyGifUrl(data.url)) return null;
+		if (allowsImageForSfwCategory(categoryInfo, sourceTag)) {
+			if (!isLikelyImageOrGifUrl(data.url)) return null;
+		} else if (!isLikelyGifUrl(data.url)) {
+			return null;
+		}
 	}
 	return toResult({ categoryInfo, sourceTag, sourceName: 'waifu.pics', url: data.url, nsfw });
 }
@@ -358,7 +407,12 @@ async function fromNekosBest(sourceTag, categoryInfo, nsfw) {
 	if (nsfw) return null;
 	const data = await fetchJsonWithTimeout(`https://nekos.best/api/v2/${sourceTag}`);
 	const url = data?.results?.[0]?.url;
-	if (!url || !String(url).toLowerCase().endsWith('.gif')) return null;
+	if (!url) return null;
+	if (allowsImageForSfwCategory(categoryInfo, sourceTag)) {
+		if (!isLikelyImageOrGifUrl(url)) return null;
+	} else if (!isLikelyGifUrl(url)) {
+		return null;
+	}
 	return toResult({ categoryInfo, sourceTag, sourceName: 'nekos.best', url, nsfw: false });
 }
 
@@ -395,7 +449,11 @@ async function fromNekosLife(sourceTag, categoryInfo, nsfw) {
 	if (nsfw) {
 		if (!isLikelyImageOrGifUrl(url)) return null;
 	} else {
-		if (!isLikelyGifUrl(url)) return null;
+		if (allowsImageForSfwCategory(categoryInfo, sourceTag)) {
+			if (!isLikelyImageOrGifUrl(url)) return null;
+		} else if (!isLikelyGifUrl(url)) {
+			return null;
+		}
 	}
 	return toResult({ categoryInfo, sourceTag, sourceName: 'nekos.life', url, nsfw });
 }
@@ -414,6 +472,25 @@ async function fromOtakuGif(sourceTag, categoryInfo, nsfw) {
 	const url = data?.url || data?.gif || data?.image;
 	if (!url || !isLikelyGifUrl(url)) return null;
 	return toResult({ categoryInfo, sourceTag, sourceName: 'otakugifs.xyz', url, nsfw: false });
+}
+
+async function fromPurrbot(sourceTag, categoryInfo, nsfw) {
+	const mode = nsfw ? 'nsfw' : 'sfw';
+	const data = await fetchJsonWithTimeout(`https://purrbot.site/api/img/${mode}/${encodeURIComponent(sourceTag)}/gif`);
+	const url = data?.link || data?.url || data?.message;
+	if (!url) return null;
+
+	if (nsfw) {
+		if (!isLikelyImageOrGifUrl(url)) return null;
+	} else {
+		if (allowsImageForSfwCategory(categoryInfo, sourceTag)) {
+			if (!isLikelyImageOrGifUrl(url)) return null;
+		} else if (!isLikelyGifUrl(url)) {
+			return null;
+		}
+	}
+
+	return toResult({ categoryInfo, sourceTag, sourceName: 'purrbot.site', url, nsfw });
 }
 
 async function fromTenorAnime(sourceTag, categoryInfo, nsfw, env) {
@@ -492,6 +569,8 @@ async function runProvider(provider, sourceTag, categoryInfo, nsfw, env) {
 		return fromKawaiiRed(sourceTag, categoryInfo, nsfw);
 	case 'otakugif':
 		return fromOtakuGif(sourceTag, categoryInfo, nsfw);
+	case 'purrbot':
+		return fromPurrbot(sourceTag, categoryInfo, nsfw);
 	case 'tenor':
 		return fromTenorAnime(sourceTag, categoryInfo, nsfw, env);
 	default:
@@ -590,7 +669,7 @@ function handleSchema() {
 		version: '3.0.0',
 		strict_category_families: true,
 		routes: {
-			'/gif/{category}': 'Strict family-matched SFW gif',
+				'/gif/{category}': 'Strict family-matched SFW media (GIF; neko/waifu can be image or GIF)',
 			'/nsfw/{category}': 'Strict family-matched NSFW gif',
 			'/search?q={category}': 'Strict family search',
 			'/resolve?category={value}': 'See category normalization + family',
