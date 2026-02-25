@@ -602,47 +602,17 @@ function handleSchema() {
 	});
 }
 
-function handleHomePage() {
-	const html = `<!doctype html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>Phawse API</title>
-	<style>
-		body{margin:0;background:#0b1020;color:#ecf2ff;font-family:Inter,Segoe UI,Arial,sans-serif}
-		.wrap{max-inline-size:960px;margin:40px auto;padding:0 16px}
-		.card{background:#121d3d;border:1px solid #2a3869;border-radius:14px;padding:18px}
-		h1{margin:0 0 8px;font-size:30px}
-		p{margin:0;color:#a6b3d8}
-		.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-block-start:14px}
-		a{display:block;color:#dce6ff;text-decoration:none;background:#1a2b5b;border:1px solid #3a4e8f;border-radius:10px;padding:10px 12px}
-		a:hover{filter:brightness(1.08)}
-		code{color:#8fa8ff}
-	</style>
-</head>
-<body>
-	<main class="wrap">
-		<section class="card">
-			<h1>Phawse API</h1>
-			<p>API is live. Use the links below to explore schema, sources, and quick test routes.</p>
-			<div class="grid">
-				<a href="/schema">/schema</a>
-				<a href="/sources">/sources</a>
-				<a href="/gif/pinch">/gif/pinch</a>
-				<a href="/gif/shoot">/gif/shoot</a>
-				<a href="/gif/disgust">/gif/disgust</a>
-				<a href="/nsfw/suck">/nsfw/suck</a>
-			</div>
-			<p style="margin-block-start:12px">Tip: your richer dashboard file can still be hosted separately, but root now serves HTML instead of JSON.</p>
-		</section>
-	</main>
-</body>
-</html>`;
+async function handleHomePage(request, env) {
+	if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
+		const assetUrl = new URL(request.url);
+		assetUrl.pathname = '/index.html';
+		return env.ASSETS.fetch(new Request(assetUrl.toString(), request));
+	}
 
-	return new Response(html, {
+	return new Response('Home page asset binding is not configured.', {
+		status: 500,
 		headers: {
-			'Content-Type': 'text/html; charset=utf-8',
+			'Content-Type': 'text/plain; charset=utf-8',
 			...CORS_HEADERS
 		}
 	});
@@ -739,7 +709,7 @@ export default {
 		}
 
 		if (route === '' || route === 'index.html') {
-			return handleHomePage();
+			return handleHomePage(request, env);
 		}
 
 		return jsonResponse({ error: 'Not found' }, 404);

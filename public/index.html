@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phawse API Studio</title>
+  <style>
+    :root {
+      --bg: #070b17;
+      --bg-soft: #0f1731;
+      --panel: #131e3f;
+      --panel-2: #1a2b5e;
+      --line: #2f3f78;
+      --text: #edf3ff;
+      --muted: #a8b4d8;
+      --accent: #9bb1ff;
+      --ok: #48d48e;
+      --warn: #ffce6d;
+      --danger: #ff6f8e;
+      --chip: #25386c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 8% -20%, #1e2f68 0%, transparent 45%),
+        radial-gradient(circle at 90% -30%, #2f255f 0%, transparent 40%),
+        var(--bg);
+    }
+
+    .wrap {
+      max-inline-size: 1320px;
+      margin-inline: auto;
+      padding: 22px 16px 56px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(140deg, #1b2c61, #0f1835 55%);
+      box-shadow: 0 22px 44px rgba(0, 0, 0, .35);
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 34px);
+      letter-spacing: .3px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .chip {
+      border: 1px solid #445899;
+      border-radius: 999px;
+      background: var(--chip);
+      color: #dbe5ff;
+      padding: 6px 10px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+    }
+
+    .input, .btn {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font: inherit;
+      color: var(--text);
+      background: #0d1530;
+      padding: 10px 12px;
+    }
+
+    .btn {
+      cursor: pointer;
+      font-weight: 600;
+      background: linear-gradient(180deg, #26407f, #1a2d61);
+      transition: transform .14s ease, filter .14s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      padding: 12px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .stat .k { color: var(--muted); font-size: 13px; }
+    .stat .v { font-size: 25px; font-weight: 700; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--bg-soft);
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .card h2 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 16px;
+    }
+
+    .tester {
+      display: grid;
+      gap: 8px;
+    }
+
+    .tester-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .quick {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .result {
+      border: 1px dashed #3b4f8f;
+      border-radius: 10px;
+      background: #0f1734;
+      padding: 10px;
+      font-size: 12px;
+      min-block-size: 78px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .routes {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .route {
+      border: 1px solid #33477f;
+      border-radius: 10px;
+      padding: 8px;
+      background: #111a39;
+    }
+
+    .family {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .family-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .family-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .providers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 10px;
+    }
+
+    .provider {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .provider h3 {
+      margin: 0;
+      font-size: 15px;
+      color: var(--accent);
+    }
+
+    .map {
+      max-block-size: 210px;
+      overflow: auto;
+      display: grid;
+      gap: 4px;
+      padding-inline-end: 4px;
+      font-size: 12px;
+    }
+
+    .map-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      border-block-end: 1px dashed #33477f;
+      padding-block-end: 3px;
+    }
+
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .danger { color: var(--danger); }
+    .muted { color: var(--muted); }
+
+    @media (max-inline-size: 990px) {
+      .toolbar { grid-template-columns: 1fr; }
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <h1>Phawse API Studio</h1>
+          <p>Modern dashboard for routes, category families, aliases, and provider mappings.</p>
+        </div>
+        <span class="chip">Strict Family Matching</span>
+      </div>
+      <div class="toolbar">
+        <input class="input" id="search" placeholder="Filter tags/providers/routes (ex: pinch, otakugif, nsfw, shoot)" />
+        <button class="btn" id="reload">Reload Data</button>
+        <button class="btn" id="testPinch">Test /gif/pinch</button>
+      </div>
+    </section>
+
+    <section class="stats" id="stats"></section>
+
+    <section class="layout">
+      <aside class="card">
+        <h2>Quick Tester</h2>
+        <div class="tester">
+          <div class="tester-row">
+            <input class="input" id="endpointInput" value="/gif/pinch" />
+            <button class="btn" id="runTest">Run</button>
+          </div>
+          <div class="quick">
+            <button class="btn" data-q="/gif/pinch">pinch</button>
+            <button class="btn" data-q="/gif/shoot">shoot</button>
+            <button class="btn" data-q="/gif/lurk">lurk</button>
+            <button class="btn" data-q="/gif/disgust">disgust</button>
+            <button class="btn" data-q="/nsfw/suck">nsfw/suck</button>
+          </div>
+          <div class="result" id="testResult">Run a test to inspect live endpoint status + response.</div>
+        </div>
+
+        <h2 style="margin-block-start: 6px;">Routes</h2>
+        <div class="routes" id="routes"></div>
+      </aside>
+
+      <section class="card">
+        <h2>Category Families & Aliases</h2>
+        <div class="family-list" id="families"></div>
+      </section>
+    </section>
+
+    <section class="card">
+      <h2>SFW Provider Mappings</h2>
+      <div class="providers" id="sfwProviders"></div>
+    </section>
+
+    <section class="card">
+      <h2>NSFW Provider Mappings</h2>
+      <div class="providers" id="nsfwProviders"></div>
+    </section>
+  </main>
+
+  <script>
+    const state = { schema: null, sources: null, filter: '' };
+
+    const searchInput = document.getElementById('search');
+    const reloadBtn = document.getElementById('reload');
+    const testPinchBtn = document.getElementById('testPinch');
+    const endpointInput = document.getElementById('endpointInput');
+    const runTestBtn = document.getElementById('runTest');
+    const testResult = document.getElementById('testResult');
+
+    function match(text) {
+      if (!state.filter) return true;
+      return String(text || '').toLowerCase().includes(state.filter);
+    }
+
+    function setResult(text, tone = 'muted') {
+      testResult.className = `result ${tone}`;
+      testResult.textContent = text;
+    }
+
+    async function runEndpointTest(path) {
+      const target = path.startsWith('/') ? path : `/${path}`;
+      setResult(`Testing ${target} ...`, 'warn');
+      try {
+        const start = performance.now();
+        const res = await fetch(target, { cache: 'no-store' });
+        const ms = Math.round(performance.now() - start);
+        const body = await res.json().catch(() => ({}));
+        const preview = JSON.stringify(body).slice(0, 360);
+        setResult(`status=${res.status} | ${ms}ms\n${preview}`, res.ok ? 'ok' : 'danger');
+      } catch (error) {
+        setResult(`Request failed: ${error.message}`, 'danger');
+      }
+    }
+
+    function renderStats() {
+      const routes = Object.keys(state.schema?.routes || {});
+      const families = state.schema?.families || {};
+      const aliasCount = Object.values(families).reduce((sum, aliases) => sum + aliases.length, 0);
+      const sfwCount = Object.keys(state.sources?.sfw || {}).length;
+      const nsfwCount = Object.keys(state.sources?.nsfw || {}).length;
+
+      const blocks = [
+        ['Routes', routes.length, 'Public API routes'],
+        ['Families', Object.keys(families).length, 'Canonical groups'],
+        ['Aliases', aliasCount, 'Total aliases'],
+        ['Providers', sfwCount + nsfwCount, `${sfwCount} SFW / ${nsfwCount} NSFW`]
+      ];
+
+      document.getElementById('stats').innerHTML = blocks
+        .map(([k, v, s]) => `<article class="stat"><span class="k">${k}</span><span class="v">${v}</span><span class="muted">${s}</span></article>`)
+        .join('');
+    }
+
+    function renderRoutes() {
+      const entries = Object.entries(state.schema?.routes || {})
+        .filter(([route, desc]) => match(`${route} ${desc}`));
+
+      document.getElementById('routes').innerHTML = entries.length
+        ? entries.map(([route, desc]) => `<div class="route"><strong>${route}</strong><div class="muted">${desc}</div></div>`).join('')
+        : '<div class="muted">No route matches.</div>';
+    }
+
+    function renderFamilies() {
+      const families = state.schema?.families || {};
+      const html = Object.entries(families)
+        .filter(([name, aliases]) => match(name) || aliases.some(alias => match(alias)))
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([name, aliases]) => `
+          <article class="family">
+            <div class="family-head">
+              <strong>${name}</strong>
+              <span class="chip">${aliases.length} alias(es)</span>
+            </div>
+            <div class="chips">${aliases.map(alias => `<span class="chip">${alias}</span>`).join('')}</div>
+          </article>
+        `)
+        .join('');
+
+      document.getElementById('families').innerHTML = html || '<div class="muted">No family matches filter.</div>';
+    }
+
+    function providerCard(name, config) {
+      const rows = Object.entries(config?.canonicalToSource || {})
+        .filter(([from, to]) => match(`${name} ${from} ${to}`))
+        .sort((a, b) => a[0].localeCompare(b[0]));
+
+      if (!rows.length) return '';
+
+      return `
+        <article class="provider">
+          <h3>${name}</h3>
+          <div class="muted">Alias tags: ${config?.supportsAliasTags ? 'enabled' : 'disabled'}</div>
+          <div class="map">
+            ${rows.map(([from, to]) => `<div class="map-item"><span>${from}</span><span class="ok">${to}</span></div>`).join('')}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderProviders() {
+      const sfw = Object.entries(state.sources?.sfw || {})
+        .map(([name, cfg]) => providerCard(name, cfg))
+        .filter(Boolean)
+        .join('');
+
+      const nsfw = Object.entries(state.sources?.nsfw || {})
+        .map(([name, cfg]) => providerCard(name, cfg))
+        .filter(Boolean)
+        .join('');
+
+      document.getElementById('sfwProviders').innerHTML = sfw || '<div class="muted">No SFW provider matches filter.</div>';
+      document.getElementById('nsfwProviders').innerHTML = nsfw || '<div class="muted">No NSFW provider matches filter.</div>';
+    }
+
+    function render() {
+      renderStats();
+      renderRoutes();
+      renderFamilies();
+      renderProviders();
+    }
+
+    async function loadData() {
+      try {
+        const [schemaRes, sourcesRes] = await Promise.all([
+          fetch('/schema', { cache: 'no-store' }),
+          fetch('/sources', { cache: 'no-store' })
+        ]);
+
+        const [schema, sources] = await Promise.all([
+          schemaRes.json(),
+          sourcesRes.json()
+        ]);
+
+        state.schema = schema;
+        state.sources = sources;
+        render();
+      } catch (error) {
+        document.getElementById('stats').innerHTML = `<article class="stat"><span class="k danger">Failed to load</span><span class="muted">${error.message}</span></article>`;
+      }
+    }
+
+    searchInput.addEventListener('input', (e) => {
+      state.filter = String(e.target.value || '').trim().toLowerCase();
+      render();
+    });
+
+    reloadBtn.addEventListener('click', loadData);
+    runTestBtn.addEventListener('click', () => runEndpointTest(endpointInput.value));
+    testPinchBtn.addEventListener('click', () => runEndpointTest('/gif/pinch'));
+
+    document.querySelectorAll('[data-q]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        endpointInput.value = btn.getAttribute('data-q');
+        runEndpointTest(endpointInput.value);
+      });
+    });
+
+    loadData();
+  </script>
+</body>
+</html>
