@@ -77,7 +77,7 @@ const SFW_PROVIDER_MAP = {
 	},
 	nekosbest: {
 		supportsAliasTags: true,
-		supportedTags: ['hug', 'kiss', 'slap', 'pat', 'poke', 'wave', 'smile', 'highfive', 'handshake', 'bite', 'blush', 'bored', 'cry', 'dance', 'facepalm', 'feed', 'happy', 'laugh', 'nod', 'nom', 'nope', 'pout', 'shrug', 'sleep', 'smug', 'stare', 'think', 'thumbsup', 'tickle', 'wink', 'yawn', 'yeet'],
+		supportedTags: ['hug', 'kiss', 'slap', 'pat', 'poke', 'wave', 'smile', 'highfive', 'handshake', 'bite', 'blush', 'bored', 'cry', 'dance', 'facepalm', 'feed', 'happy', 'laugh', 'nod', 'nom', 'nope', 'pout', 'shrug', 'sleep', 'smug', 'stare', 'think', 'thumbsup', 'tickle', 'wink', 'yawn', 'yeet', 'lurk', 'shoot'],
 		canonicalToSource: {
 			disgust: 'facepalm',
 			facepalm: 'facepalm',
@@ -87,7 +87,8 @@ const SFW_PROVIDER_MAP = {
 			bored: 'bored',
 			smug: 'smug',
 			boop: 'poke',
-			lurk: 'stare',
+			lurk: 'lurk',
+			shoot: 'shoot',
 			poke: 'poke',
 			stare: 'stare',
 			yeet: 'yeet',
