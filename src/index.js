@@ -89,7 +89,14 @@ const CATEGORY_ALIAS_MAP = {
   handholding: 'handhold',
   handhold: 'handhold',
   handholdinghands: 'handhold',
-  disgust: 'disgusted',
+  disgust: 'facepalm',
+  disgusted: 'facepalm',
+  gross: 'facepalm',
+  eww: 'facepalm',
+  ew: 'facepalm',
+  cringe: 'cringe',
+  cringy: 'cringe',
+  cringey: 'cringe',
   horny: 'lewd',
   ecchi: 'lewd',
   blowjob: 'ero',
@@ -159,6 +166,17 @@ function getCategoryMatchScore(item, category) {
   if (!requested || !item) return 0;
 
   const alias = CATEGORY_ALIAS_MAP[requested];
+  const extraAliases = {
+    disgust: ['disgusted', 'gross', 'eww', 'ew', 'facepalm'],
+    disgusted: ['disgust', 'gross', 'eww', 'ew', 'facepalm'],
+    gross: ['disgust', 'disgusted', 'eww', 'ew', 'facepalm'],
+    eww: ['disgust', 'disgusted', 'gross', 'ew', 'facepalm'],
+    ew: ['disgust', 'disgusted', 'gross', 'eww', 'facepalm'],
+    cringe: ['cringy', 'cringey'],
+    cringy: ['cringe', 'cringey'],
+    cringey: ['cringe', 'cringy']
+  };
+  const requestedAliases = extraAliases[requested] || [];
   const tags = Array.isArray(item.tags)
     ? item.tags.map(tag => {
       if (typeof tag === 'string') return tag;
@@ -171,6 +189,7 @@ function getCategoryMatchScore(item, category) {
   if (!haystack) return 0;
   if (haystack.includes(requested)) return 3;
   if (alias && haystack.includes(normalizeCategory(alias))) return 2;
+  if (requestedAliases.some(tag => haystack.includes(normalizeCategory(tag)))) return 2;
 
   const simpleRequested = requested.replace(/ing$|ed$|s$/g, '');
   if (simpleRequested && haystack.includes(simpleRequested)) return 1;
@@ -181,6 +200,11 @@ function getCategoryMatchScore(item, category) {
 function isCategoryMatch(item, category) {
   if (!category) return true;
   return getCategoryMatchScore(item, category) > 0;
+}
+
+function isBlockedCategorySource(item) {
+  const source = normalizeCategory(item?.source || '');
+  return source === 'nekosmoe';
 }
 
 function prioritizeCategoryMatches(results, category) {
@@ -230,7 +254,7 @@ async function handleCategoryGif(category, nsfw, experimental, detectAnime, env,
       ? (nsfw ? await getRandomPurrbotNsfw(purrbotCategory, env) : await getRandomPurrbot(purrbotCategory, nsfw, env))
       : null;
 
-    if (gif && (!(await isLikelyLoadableMedia(gif.url)) || !isLikelyAnimeGif(gif, category) || !isCategoryMatch(gif, category))) {
+    if (gif && (isBlockedCategorySource(gif) || !(await isLikelyLoadableMedia(gif.url)) || !isLikelyAnimeGif(gif, category) || !isCategoryMatch(gif, category))) {
       gif = null;
     }
 
@@ -406,7 +430,7 @@ async function handleCategoryGif(category, nsfw, experimental, detectAnime, env,
           gif = await getRandomGelbooru(category, nsfw, env);
         }
 
-        if (gif && await isLikelyLoadableMedia(gif.url) && isLikelyAnimeGif(gif, category) && isCategoryMatch(gif, category)) {
+        if (gif && !isBlockedCategorySource(gif) && await isLikelyLoadableMedia(gif.url) && isLikelyAnimeGif(gif, category) && isCategoryMatch(gif, category)) {
           break;
         }
 
@@ -419,7 +443,7 @@ async function handleCategoryGif(category, nsfw, experimental, detectAnime, env,
       if (results.length > 0) {
         const prioritizedResults = prioritizeCategoryMatches(results, category);
         for (const candidate of prioritizedResults) {
-          if (await isLikelyLoadableMedia(candidate.url) && isLikelyAnimeGif(candidate, category) && isCategoryMatch(candidate, category)) {
+          if (!isBlockedCategorySource(candidate) && await isLikelyLoadableMedia(candidate.url) && isLikelyAnimeGif(candidate, category) && isCategoryMatch(candidate, category)) {
             gif = candidate;
             break;
           }
