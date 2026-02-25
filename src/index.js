@@ -31,16 +31,16 @@ const CATEGORY_FAMILIES = {
 	yeet: ['yeet'],
 	lewd: ['lewd', 'nsfw'],
 	hentai: ['hentai', 'ecchi'],
-	blowjob: ['blowjob', 'bj', 'fellatio', 'suck', 'sucking'],
+	blowjob: ['blowjob', 'blow_job', 'bj', 'fellatio', 'suck', 'sucking'],
 	anal: ['anal'],
 	cum: ['cum'],
 	fuck: ['fuck', 'fucking'],
 	pussylick: ['pussylick', 'kuni'],
-	solo: ['solo'],
-	solomale: ['solomale'],
-	threesomefff: ['threesomefff'],
-	threesomeffm: ['threesomeffm'],
-	threesomemmf: ['threesomemmf'],
+	solo: ['solo', 'solo_female'],
+	solomale: ['solomale', 'solo_male'],
+	threesomefff: ['threesomefff', 'threesome_fff'],
+	threesomeffm: ['threesomeffm', 'threesome_ffm'],
+	threesomemmf: ['threesomemmf', 'threesome_mmf'],
 	yaoi: ['yaoi'],
 	yuri: ['yuri'],
 	trap: ['trap'],
@@ -730,11 +730,16 @@ function handleSchema() {
 		version: '3.0.0',
 		strict_category_families: true,
 		routes: {
-				'/gif/{category}': 'Strict family-matched SFW media (GIF; neko/waifu can be image or GIF)',
+			'/gif/{category}': 'Strict family-matched SFW media (GIF; neko/waifu can be image or GIF)',
+			'/sfw/{category}': 'Alias of /gif/{category}',
 			'/nsfw/{category}': 'Strict family-matched NSFW gif',
-			'/search?q={category}': 'Strict family search',
+			'/search?q={category}': 'Strict family search (SFW by default)',
+			'/sfw/search?q={category}': 'Alias of /search with SFW mode',
+			'/nsfw/search?q={category}': 'Strict family search in NSFW mode',
 			'/resolve?category={value}': 'See category normalization + family',
-			'/batch?categories=a,b,c': 'Fetch many strict category gifs',
+			'/batch?categories=a,b,c': 'Fetch many strict category gifs (SFW by default)',
+			'/sfw/batch?categories=a,b,c': 'Alias of /batch with SFW mode',
+			'/nsfw/batch?categories=a,b,c': 'Fetch many strict category gifs in NSFW mode',
 			'/sources': 'List provider capabilities',
 			'/schema': 'API schema'
 		},
@@ -815,29 +820,42 @@ export default {
 
 		const pathParts = url.pathname.split('/').filter(Boolean);
 		const route = pathParts[0] || '';
+		const scopeRoute = route === 'sfw' || route === 'nsfw';
+		const scopedNsfw = route === 'nsfw';
+		const scopedCommand = scopeRoute ? (pathParts[1] || '') : route;
 
 		if (route === 'proxy' && pathParts[1]) {
 			return handleProxy(pathParts.slice(1).join('/'));
 		}
 
-		if (route === 'gif' && pathParts[1]) {
+		if ((route === 'gif' && pathParts[1]) || (route === 'sfw' && pathParts[1] && pathParts[1] !== 'search' && pathParts[1] !== 'batch')) {
 			return handleGifRequest(pathParts[1], false, env);
 		}
 
 		if (route === 'nsfw' && pathParts[1]) {
+			if (pathParts[1] === 'search' || pathParts[1] === 'batch') {
+				// handled by scoped command routing below
+			} else {
 			return handleGifRequest(pathParts[1], true, env);
+			}
 		}
 
-		if (route === 'search') {
+		if ((scopeRoute && scopedCommand === 'search') || route === 'search') {
+			if (scopeRoute) {
+				url.searchParams.set('nsfw', scopedNsfw ? 'true' : 'false');
+			}
 			return handleSearch(url, env);
+		}
+
+		if ((scopeRoute && scopedCommand === 'batch') || route === 'batch') {
+			if (scopeRoute) {
+				url.searchParams.set('nsfw', scopedNsfw ? 'true' : 'false');
+			}
+			return handleBatch(url, env);
 		}
 
 		if (route === 'resolve') {
 			return handleResolve(url);
-		}
-
-		if (route === 'batch') {
-			return handleBatch(url, env);
 		}
 
 		if (route === 'sources') {
