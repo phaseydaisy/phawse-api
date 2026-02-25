@@ -14,6 +14,7 @@ const CATEGORY_FAMILIES = {
 	bored: ['bored'],
 	smug: ['smug'],
 	poke: ['poke', 'poking'],
+	pinch: ['pinch', 'pinching'],
 	boop: ['boop', 'touch'],
 	lurk: ['lurk', 'lurking'],
 	shoot: ['shoot', 'shooting'],
@@ -190,7 +191,7 @@ const SFW_PROVIDER_MAP = {
 	},
 	otakugif: {
 		supportsAliasTags: true,
-		supportedTags: ['hug', 'kiss', 'pat', 'slap', 'poke', 'lick', 'cuddle', 'cry', 'wave', 'wink', 'dance', 'smile', 'blush', 'pout', 'facepalm', 'shrug', 'handhold', 'tickle', 'bite', 'laugh'],
+		supportedTags: ['hug', 'kiss', 'pat', 'slap', 'poke', 'pinch', 'lick', 'cuddle', 'cry', 'wave', 'wink', 'dance', 'smile', 'blush', 'pout', 'facepalm', 'shrug', 'handhold', 'tickle', 'bite', 'laugh'],
 		canonicalToSource: {
 			disgust: 'facepalm',
 			facepalm: 'facepalm',
@@ -198,6 +199,7 @@ const SFW_PROVIDER_MAP = {
 			shrug: 'shrug',
 			boop: 'poke',
 			poke: 'poke',
+			pinch: 'pinch',
 			lick: 'lick',
 			hug: 'hug',
 			kiss: 'kiss',
