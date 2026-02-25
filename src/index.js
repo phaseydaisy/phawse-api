@@ -19,11 +19,30 @@ const CATEGORY_FAMILIES = {
 	lurk: ['lurk', 'lurking'],
 	shoot: ['shoot', 'shooting'],
 	lick: ['lick', 'licking'],
+	fluff: ['fluff'],
+	comfy: ['comfy'],
+	lay: ['lay', 'lying'],
+	tail: ['tail', 'wag'],
+	holo: ['holo'],
+	kitsune: ['kitsune'],
+	senko: ['senko'],
+	shiro: ['shiro'],
 	stare: ['stare', 'staring'],
 	yeet: ['yeet'],
 	lewd: ['lewd', 'nsfw'],
 	hentai: ['hentai', 'ecchi'],
 	blowjob: ['blowjob', 'bj', 'fellatio', 'suck', 'sucking'],
+	anal: ['anal'],
+	cum: ['cum'],
+	fuck: ['fuck', 'fucking'],
+	pussylick: ['pussylick', 'kuni'],
+	solo: ['solo'],
+	solomale: ['solomale'],
+	threesomefff: ['threesomefff'],
+	threesomeffm: ['threesomeffm'],
+	threesomemmf: ['threesomemmf'],
+	yaoi: ['yaoi'],
+	yuri: ['yuri'],
 	trap: ['trap'],
 	neko: ['neko'],
 	waifu: ['waifu'],
@@ -229,24 +248,32 @@ const SFW_PROVIDER_MAP = {
 	},
 	purrbot: {
 		supportsAliasTags: true,
-		supportedTags: ['angry', 'bite', 'blush', 'cry', 'cuddle', 'dance', 'hug', 'kiss', 'lick', 'neko', 'pat', 'poke', 'pout', 'slap', 'smile', 'tickle'],
+		supportedTags: ['angry', 'bite', 'blush', 'comfy', 'cry', 'cuddle', 'dance', 'fluff', 'holo', 'hug', 'kiss', 'kitsune', 'lay', 'lick', 'neko', 'pat', 'poke', 'pout', 'senko', 'shiro', 'slap', 'smile', 'tail', 'tickle'],
 		canonicalToSource: {
 			angry: 'angry',
 			bite: 'bite',
 			blush: 'blush',
 			boop: 'poke',
+			comfy: 'comfy',
 			cry: 'cry',
 			cuddle: 'cuddle',
 			dance: 'dance',
+			fluff: 'fluff',
+			holo: 'holo',
 			hug: 'hug',
 			kiss: 'kiss',
+			kitsune: 'kitsune',
+			lay: 'lay',
 			lick: 'lick',
 			neko: 'neko',
 			pat: 'pat',
 			poke: 'poke',
 			pout: 'pout',
+			senko: 'senko',
+			shiro: 'shiro',
 			slap: 'slap',
 			smile: 'smile',
+			tail: 'tail',
 			tickle: 'tickle'
 		}
 	},
@@ -270,17 +297,29 @@ const NSFW_PROVIDER_MAP = {
 	},
 	nekoslife: {
 		supportsAliasTags: true,
-		supportedTags: ['lewd'],
+		supportedTags: ['lewd', 'hentai'],
 		canonicalToSource: {
-			lewd: 'lewd'
+			lewd: 'lewd',
+			hentai: 'lewd'
 		}
 	},
 	purrbot: {
 		supportsAliasTags: true,
-		supportedTags: ['blowjob', 'cum', 'neko'],
+		supportedTags: ['anal', 'blowjob', 'cum', 'fuck', 'neko', 'pussylick', 'solo', 'solo_male', 'threesome_fff', 'threesome_ffm', 'threesome_mmf', 'yaoi', 'yuri'],
 		canonicalToSource: {
+			anal: 'anal',
 			blowjob: 'blowjob',
-			neko: 'neko'
+			cum: 'cum',
+			fuck: 'fuck',
+			neko: 'neko',
+			pussylick: 'pussylick',
+			solo: 'solo',
+			solomale: 'solo_male',
+			threesomefff: 'threesome_fff',
+			threesomeffm: 'threesome_ffm',
+			threesomemmf: 'threesome_mmf',
+			yaoi: 'yaoi',
+			yuri: 'yuri'
 		}
 	}
 };
@@ -341,7 +380,8 @@ function isLikelyGifUrl(url) {
 function allowsImageForSfwCategory(categoryInfo, sourceTag) {
 	const canonical = normalizeCategory(categoryInfo?.canonical || '');
 	const tag = normalizeCategory(sourceTag || '');
-	return canonical === 'neko' || canonical === 'waifu' || tag === 'neko' || tag === 'waifu';
+	const imageTags = new Set(['neko', 'waifu', 'holo', 'kitsune', 'senko', 'shiro']);
+	return imageTags.has(canonical) || imageTags.has(tag);
 }
 
 function isLikelyAnimeText(text) {
@@ -476,7 +516,14 @@ async function fromOtakuGif(sourceTag, categoryInfo, nsfw) {
 
 async function fromPurrbot(sourceTag, categoryInfo, nsfw) {
 	const mode = nsfw ? 'nsfw' : 'sfw';
-	const data = await fetchJsonWithTimeout(`https://purrbot.site/api/img/${mode}/${encodeURIComponent(sourceTag)}/gif`);
+	const imageFirstTags = new Set(['holo', 'kitsune', 'senko', 'shiro']);
+	const mediaType = !nsfw && imageFirstTags.has(sourceTag) ? 'img' : 'gif';
+	let data = await fetchJsonWithTimeout(`https://purrbot.site/api/img/${mode}/${encodeURIComponent(sourceTag)}/${mediaType}`);
+
+	if (!data && !nsfw && mediaType === 'gif') {
+		data = await fetchJsonWithTimeout(`https://purrbot.site/api/img/${mode}/${encodeURIComponent(sourceTag)}/img`);
+	}
+
 	const url = data?.link || data?.url || data?.message;
 	if (!url) return null;
 
@@ -514,7 +561,21 @@ async function fromTenorAnime(sourceTag, categoryInfo, nsfw, env) {
 }
 
 function uniqueTags(values) {
-	return [...new Set(values.filter(Boolean).map(value => normalizeCategory(value)))];
+	const seen = new Set();
+	const unique = [];
+
+	for (const value of values) {
+		const sourceTag = String(value || '').trim().toLowerCase();
+		if (!sourceTag) continue;
+
+		const key = normalizeCategory(sourceTag);
+		if (!key || seen.has(key)) continue;
+
+		seen.add(key);
+		unique.push(sourceTag);
+	}
+
+	return unique;
 }
 
 function shuffleArray(values) {

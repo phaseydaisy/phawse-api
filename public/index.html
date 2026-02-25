@@ -25,19 +25,21 @@
     body {
       margin: 0;
       font-family: Inter, Segoe UI, Arial, sans-serif;
+      line-height: 1.5;
       color: var(--text);
       background:
         radial-gradient(circle at 8% -20%, #1d1f24 0%, transparent 45%),
         radial-gradient(circle at 90% -30%, #17191d 0%, transparent 40%),
         var(--bg);
+      scroll-behavior: smooth;
     }
 
     .wrap {
-      max-inline-size: 1320px;
+      max-inline-size: 1460px;
       margin-inline: auto;
-      padding: 22px 16px 56px;
+      padding: 28px 20px 72px;
       display: grid;
-      gap: 12px;
+      gap: 16px;
     }
 
     .hero {
@@ -45,9 +47,9 @@
       border-radius: 18px;
       background: linear-gradient(140deg, #1f2126, #141518 55%);
       box-shadow: 0 22px 44px rgba(0, 0, 0, .35);
-      padding: 18px;
+      padding: 22px;
       display: grid;
-      gap: 12px;
+      gap: 14px;
     }
 
     .hero-top {
@@ -82,7 +84,7 @@
     .toolbar {
       display: grid;
       grid-template-columns: 1fr auto auto;
-      gap: 10px;
+      gap: 12px;
     }
 
     .input, .btn {
@@ -91,7 +93,7 @@
       font: inherit;
       color: var(--text);
       background: #111216;
-      padding: 10px 12px;
+      padding: 11px 13px;
     }
 
     .btn {
@@ -109,14 +111,14 @@
     .stats {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 10px;
+      gap: 12px;
     }
 
     .stat {
       border: 1px solid var(--line);
       border-radius: 14px;
       background: var(--panel);
-      padding: 12px;
+      padding: 14px;
       display: grid;
       gap: 6px;
     }
@@ -126,8 +128,8 @@
 
     .layout {
       display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 12px;
+      grid-template-columns: 390px 1fr;
+      gap: 14px;
       align-items: start;
     }
 
@@ -135,9 +137,30 @@
       border: 1px solid var(--line);
       border-radius: 14px;
       background: var(--bg-soft);
-      padding: 12px;
+      padding: 16px;
       display: grid;
-      gap: 10px;
+      gap: 12px;
+    }
+
+    .guide {
+      border-style: dashed;
+      background: linear-gradient(180deg, #17191d, #141518);
+    }
+
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .guide-step {
+      border: 1px solid #34373e;
+      border-radius: 12px;
+      padding: 12px;
+      background: #16181c;
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
     }
 
     .card h2 {
@@ -148,7 +171,7 @@
 
     .tester {
       display: grid;
-      gap: 8px;
+      gap: 10px;
     }
 
     .tester-row {
@@ -161,13 +184,14 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+      align-content: flex-start;
     }
 
     .result {
       border: 1px dashed #34373e;
       border-radius: 10px;
       background: #15171b;
-      padding: 10px;
+      padding: 12px;
       font-size: 12px;
       min-block-size: 78px;
       white-space: pre-wrap;
@@ -193,7 +217,7 @@
     .route {
       border: 1px solid #34373e;
       border-radius: 10px;
-      padding: 8px;
+      padding: 10px;
       background: #17191d;
     }
 
@@ -201,9 +225,9 @@
       border: 1px solid var(--line);
       border-radius: 12px;
       background: var(--panel);
-      padding: 10px;
+      padding: 12px;
       display: grid;
-      gap: 8px;
+      gap: 10px;
     }
 
     .family-head {
@@ -226,17 +250,17 @@
 
     .providers {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 12px;
     }
 
     .provider {
       border: 1px solid var(--line);
       border-radius: 12px;
       background: var(--panel);
-      padding: 10px;
+      padding: 12px;
       display: grid;
-      gap: 6px;
+      gap: 8px;
     }
 
     .provider h3 {
@@ -246,10 +270,8 @@
     }
 
     .map {
-      max-block-size: 210px;
-      overflow: auto;
       display: grid;
-      gap: 4px;
+      gap: 6px;
       padding-inline-end: 4px;
       font-size: 12px;
     }
@@ -258,8 +280,9 @@
       display: flex;
       justify-content: space-between;
       gap: 8px;
+      flex-wrap: wrap;
       border-block-end: 1px dashed #34373e;
-      padding-block-end: 3px;
+      padding-block-end: 5px;
     }
 
     .ok { color: var(--ok); }
@@ -284,9 +307,31 @@
         <span class="chip">Strict Family Matching</span>
       </div>
       <div class="toolbar">
-        <input class="input" id="search" placeholder="Filter tags/providers/routes (ex: pinch, otakugif, nsfw, shoot)" />
+        <input class="input" id="search" placeholder="Filter tags/providers/routes (ex: comfy, fluff, tail, anal, yaoi)" />
         <button class="btn" id="reload">Reload Data</button>
         <button class="btn" id="testPinch">Test /gif/pinch</button>
+      </div>
+    </section>
+
+    <section class="card guide">
+      <h2>How To Use This Dashboard</h2>
+      <div class="guide-grid">
+        <article class="guide-step">
+          <strong>1) Start With Core Routes</strong>
+          <span class="muted">Use <b>/gif/{tag}</b> for SFW, <b>/nsfw/{tag}</b> for NSFW, <b>/resolve?category=...</b> to see canonical mapping, and <b>/sources</b> to inspect provider capabilities.</span>
+        </article>
+        <article class="guide-step">
+          <strong>2) Test Live Endpoints</strong>
+          <span class="muted">Use Quick Tester with examples like <b>/gif/comfy</b>, <b>/gif/kitsune</b>, <b>/nsfw/anal</b>, <b>/nsfw/yaoi</b>. Response preview shows status, latency, source, and source tag.</span>
+        </article>
+        <article class="guide-step">
+          <strong>3) Understand Tag Routing</strong>
+          <span class="muted">Categories normalize to canonical families first. Then each provider maps canonical tags to its own source tags (for example canonical <b>solomale</b> -> source <b>solo_male</b>).</span>
+        </article>
+        <article class="guide-step">
+          <strong>4) Read Provider Coverage</strong>
+          <span class="muted">Provider cards show two things: <b>Supported source tags</b> and <b>Canonical → source mapping</b>. If a tag is missing in both, that provider will not serve that route.</span>
+        </article>
       </div>
     </section>
 
@@ -305,7 +350,18 @@
             <button class="btn" data-q="/gif/shoot">shoot</button>
             <button class="btn" data-q="/gif/lurk">lurk</button>
             <button class="btn" data-q="/gif/disgust">disgust</button>
+            <button class="btn" data-q="/gif/comfy">comfy</button>
+            <button class="btn" data-q="/gif/fluff">fluff</button>
+            <button class="btn" data-q="/gif/tail">tail</button>
+            <button class="btn" data-q="/gif/lay">lay</button>
             <button class="btn" data-q="/nsfw/suck">nsfw/suck</button>
+            <button class="btn" data-q="/nsfw/anal">nsfw/anal</button>
+            <button class="btn" data-q="/nsfw/fuck">nsfw/fuck</button>
+            <button class="btn" data-q="/nsfw/solo">nsfw/solo</button>
+            <button class="btn" data-q="/nsfw/solomale">nsfw/solomale</button>
+            <button class="btn" data-q="/nsfw/pussylick">nsfw/pussylick</button>
+            <button class="btn" data-q="/nsfw/yaoi">nsfw/yaoi</button>
+            <button class="btn" data-q="/nsfw/yuri">nsfw/yuri</button>
           </div>
           <div class="result" id="testResult">Run a test to inspect live endpoint status + response.</div>
         </div>
@@ -469,9 +525,9 @@
         <article class="provider">
           <h3>${name}</h3>
           <div class="muted">Alias tags: ${config?.supportsAliasTags ? 'enabled' : 'disabled'}</div>
-          <div class="muted">Supported tags (${supported.length})</div>
+          <div class="muted">Supported source tags (${supported.length})</div>
           <div class="chips">${supportedVisible.map(tag => `<span class="chip">${tag}</span>`).join('') || '<span class="muted">No supported tags match.</span>'}</div>
-          <div class="muted">Canonical → source mappings (${Object.keys(config?.canonicalToSource || {}).length})</div>
+          <div class="muted">Canonical tag → provider source tag (${Object.keys(config?.canonicalToSource || {}).length})</div>
           <div class="map">
             ${rows.map(([from, to]) => `<div class="map-item"><span>${from}</span><span class="ok">${to}</span></div>`).join('') || '<div class="muted">No mappings match.</div>'}
           </div>
