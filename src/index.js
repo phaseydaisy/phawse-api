@@ -187,6 +187,38 @@ const SFW_PROVIDER_MAP = {
 			smile: 'smile',
 			wave: 'wave'
 		}
+	},
+	otakugif: {
+		supportsAliasTags: true,
+		supportedTags: ['hug', 'kiss', 'pat', 'slap', 'poke', 'lick', 'cuddle', 'cry', 'wave', 'wink', 'dance', 'smile', 'blush', 'pout', 'facepalm', 'shrug', 'handhold', 'tickle', 'bite', 'laugh'],
+		canonicalToSource: {
+			disgust: 'facepalm',
+			facepalm: 'facepalm',
+			pout: 'pout',
+			shrug: 'shrug',
+			boop: 'poke',
+			poke: 'poke',
+			lick: 'lick',
+			hug: 'hug',
+			kiss: 'kiss',
+			pat: 'pat',
+			slap: 'slap',
+			smile: 'smile',
+			cry: 'cry',
+			laugh: 'laugh',
+			wave: 'wave',
+			wink: 'wink',
+			dance: 'dance',
+			blush: 'blush',
+			bite: 'bite',
+			cuddle: 'cuddle',
+			tickle: 'tickle',
+			handhold: 'handhold'
+		}
+	},
+	tenor: {
+		supportsAliasTags: true,
+		canonicalToSource: {}
 	}
 };
 
@@ -263,6 +295,13 @@ function isLikelyImageOrGifUrl(url) {
 function isLikelyGifUrl(url) {
 	if (!url || typeof url !== 'string') return false;
 	return /\.gif(\?|$)/i.test(url);
+}
+
+function isLikelyAnimeText(text) {
+	const normalized = normalizeCategory(text || '');
+	if (!normalized) return false;
+	const hints = ['anime', 'manga', 'waifu', 'neko', 'otaku', 'chibi', 'kawaii', 'cosplay'];
+	return hints.some(hint => normalized.includes(hint));
 }
 
 async function fetchJsonWithTimeout(resource, timeoutMs = 1800) {
@@ -367,6 +406,34 @@ async function fromKawaiiRed(sourceTag, categoryInfo, nsfw) {
 	return toResult({ categoryInfo, sourceTag, sourceName: 'kawaii.red', url, nsfw: false });
 }
 
+async function fromOtakuGif(sourceTag, categoryInfo, nsfw) {
+	if (nsfw) return null;
+	const data = await fetchJsonWithTimeout(`https://api.otakugifs.xyz/gif?reaction=${encodeURIComponent(sourceTag)}`);
+	const url = data?.url || data?.gif || data?.image;
+	if (!url || !isLikelyGifUrl(url)) return null;
+	return toResult({ categoryInfo, sourceTag, sourceName: 'otakugifs.xyz', url, nsfw: false });
+}
+
+async function fromTenorAnime(sourceTag, categoryInfo, nsfw, env) {
+	if (nsfw) return null;
+	const key = env.TENOR_API_KEY || 'LIVDSRZULELA';
+	const query = encodeURIComponent(`anime ${sourceTag} reaction`);
+	const data = await fetchJsonWithTimeout(`https://tenor.googleapis.com/v2/search?q=${query}&key=${key}&limit=20&media_filter=gif`);
+	const items = shuffleArray(Array.isArray(data?.results) ? data.results : []);
+
+	for (const item of items) {
+		const url = item?.media_formats?.gif?.url || item?.media?.[0]?.gif?.url;
+		const text = `${item?.title || ''} ${item?.content_description || ''} ${item?.itemurl || ''}`;
+		if (!url || !String(url).toLowerCase().includes('http')) continue;
+		if (!isLikelyGifUrl(url)) continue;
+		if (!isLikelyAnimeText(text)) continue;
+		if (!categoryFamilyIncludes(categoryInfo, `${text} ${sourceTag}`)) continue;
+		return toResult({ categoryInfo, sourceTag, sourceName: 'tenor', url, nsfw: false });
+	}
+
+	return null;
+}
+
 function uniqueTags(values) {
 	return [...new Set(values.filter(Boolean).map(value => normalizeCategory(value)))];
 }
@@ -421,6 +488,10 @@ async function runProvider(provider, sourceTag, categoryInfo, nsfw, env) {
 		return fromNekosLife(sourceTag, categoryInfo, nsfw);
 	case 'kawaiired':
 		return fromKawaiiRed(sourceTag, categoryInfo, nsfw);
+	case 'otakugif':
+		return fromOtakuGif(sourceTag, categoryInfo, nsfw);
+	case 'tenor':
+		return fromTenorAnime(sourceTag, categoryInfo, nsfw, env);
 	default:
 		return null;
 	}
