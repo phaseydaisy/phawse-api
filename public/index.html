@@ -83,7 +83,7 @@
 
     .toolbar {
       display: grid;
-      grid-template-columns: 1fr auto auto;
+      grid-template-columns: 1fr auto auto auto;
       gap: 12px;
     }
 
@@ -101,6 +101,13 @@
       font-weight: 600;
       background: linear-gradient(180deg, #2a2d33, #1f2126);
       transition: transform .14s ease, filter .14s ease;
+    }
+
+    .btn-link {
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .btn:hover {
@@ -142,9 +149,21 @@
       gap: 12px;
     }
 
+    .section-title {
+      margin: 0;
+      font-size: 18px;
+      color: var(--accent);
+    }
+
     .guide {
       border-style: dashed;
       background: linear-gradient(180deg, #17191d, #141518);
+    }
+
+    .guide-simple {
+      display: grid;
+      gap: 10px;
+      font-size: 14px;
     }
 
     .guide-grid {
@@ -302,36 +321,15 @@
       <div class="hero-top">
         <div>
           <h1>Phawse API Studio</h1>
-          <p>Modern dashboard for routes, category families, aliases, and provider mappings.</p>
+          <p>Simple explorer for routes, family aliases, and provider mappings.</p>
         </div>
         <span class="chip">Strict Family Matching</span>
       </div>
       <div class="toolbar">
-        <input class="input" id="search" placeholder="Filter tags/providers/routes (ex: comfy, fluff, tail, anal, yaoi)" />
+        <input class="input" id="search" placeholder="Filter tags, routes, providers (ex: hug, hentai, purrbot)" />
         <button class="btn" id="reload">Reload Data</button>
-        <button class="btn" id="testPinch">Test /gif/pinch</button>
-      </div>
-    </section>
-
-    <section class="card guide">
-      <h2>How To Use This Dashboard</h2>
-      <div class="guide-grid">
-        <article class="guide-step">
-          <strong>1) Start With Core Routes</strong>
-          <span class="muted">Use <b>/gif/{tag}</b> for SFW, <b>/nsfw/{tag}</b> for NSFW, <b>/resolve?category=...</b> to see canonical mapping, and <b>/sources</b> to inspect provider capabilities.</span>
-        </article>
-        <article class="guide-step">
-          <strong>2) Test Live Endpoints</strong>
-          <span class="muted">Use Quick Tester with examples like <b>/gif/comfy</b>, <b>/gif/kitsune</b>, <b>/nsfw/anal</b>, <b>/nsfw/yaoi</b>. Response preview shows status, latency, source, and source tag.</span>
-        </article>
-        <article class="guide-step">
-          <strong>3) Understand Tag Routing</strong>
-          <span class="muted">Categories normalize to canonical families first. Then each provider maps canonical tags to its own source tags (for example canonical <b>solomale</b> -> source <b>solo_male</b>).</span>
-        </article>
-        <article class="guide-step">
-          <strong>4) Read Provider Coverage</strong>
-          <span class="muted">Provider cards show two things: <b>Supported source tags</b> and <b>Canonical → source mapping</b>. If a tag is missing in both, that provider will not serve that route.</span>
-        </article>
+        <button class="btn" id="testPinch">Test /sfw/pinch</button>
+        <a class="btn btn-link" href="#howto">How To Use</a>
       </div>
     </section>
 
@@ -339,22 +337,21 @@
 
     <section class="layout">
       <aside class="card">
-        <h2>Quick Tester</h2>
+        <h2 class="section-title">Quick Tester</h2>
         <div class="tester">
           <div class="tester-row">
-            <input class="input" id="endpointInput" value="/gif/pinch" />
+            <input class="input" id="endpointInput" value="/sfw/pinch" />
             <button class="btn" id="runTest">Run</button>
           </div>
           <div class="quick">
-            <button class="btn" data-q="/gif/pinch">pinch</button>
-            <button class="btn" data-q="/gif/shoot">shoot</button>
-            <button class="btn" data-q="/gif/lurk">lurk</button>
-            <button class="btn" data-q="/gif/disgust">disgust</button>
-            <button class="btn" data-q="/gif/comfy">comfy</button>
-            <button class="btn" data-q="/gif/fluff">fluff</button>
-            <button class="btn" data-q="/gif/tail">tail</button>
-            <button class="btn" data-q="/gif/lay">lay</button>
+            <button class="btn" data-q="/sfw/pinch">sfw/pinch</button>
+            <button class="btn" data-q="/sfw/disgust">sfw/disgust</button>
+            <button class="btn" data-q="/sfw/kitsune">sfw/kitsune</button>
+            <button class="btn" data-q="/sfw/comfy">sfw/comfy</button>
+            <button class="btn" data-q="/sfw/fluff">sfw/fluff</button>
+            <button class="btn" data-q="/sfw/tail">sfw/tail</button>
             <button class="btn" data-q="/nsfw/suck">nsfw/suck</button>
+            <button class="btn" data-q="/nsfw/hentai">nsfw/hentai</button>
             <button class="btn" data-q="/nsfw/anal">nsfw/anal</button>
             <button class="btn" data-q="/nsfw/fuck">nsfw/fuck</button>
             <button class="btn" data-q="/nsfw/solo">nsfw/solo</button>
@@ -366,27 +363,37 @@
           <div class="result" id="testResult">Run a test to inspect live endpoint status + response.</div>
         </div>
 
-        <h2 style="margin-block-start: 6px;">Routes</h2>
+        <h2 style="margin-block-start: 6px;" class="section-title">Routes</h2>
         <div class="routes" id="routes"></div>
 
-        <h2 style="margin-block-start: 6px;">All Active Tags</h2>
+        <h2 style="margin-block-start: 6px;" class="section-title">All Active Tags</h2>
         <div class="tag-summary" id="tagSummary"></div>
       </aside>
 
       <section class="card">
-        <h2>Category Families & Aliases</h2>
+        <h2 class="section-title">Category Families & Aliases</h2>
         <div class="family-list" id="families"></div>
       </section>
     </section>
 
     <section class="card">
-      <h2>SFW Provider Mappings</h2>
+      <h2 class="section-title">SFW Provider Mappings</h2>
       <div class="providers" id="sfwProviders"></div>
     </section>
 
     <section class="card">
-      <h2>NSFW Provider Mappings</h2>
+      <h2 class="section-title">NSFW Provider Mappings</h2>
       <div class="providers" id="nsfwProviders"></div>
+    </section>
+
+    <section class="card guide" id="howto">
+      <h2 class="section-title">How To Use The API</h2>
+      <div class="guide-simple">
+        <div><strong>1) Get a result</strong> — Use <b>/sfw/{tag}</b> (or <b>/gif/{tag}</b>) for safe content, and <b>/nsfw/{tag}</b> for NSFW.</div>
+        <div><strong>2) Check aliases</strong> — Use <b>/resolve?category=yourtag</b> to see how a tag maps into its family.</div>
+        <div><strong>3) Inspect providers</strong> — Use <b>/sources</b> to see supported tags and canonical-to-source mappings.</div>
+        <div><strong>4) Search/batch</strong> — Use <b>/sfw/search</b>, <b>/nsfw/search</b>, <b>/sfw/batch</b>, and <b>/nsfw/batch</b>.</div>
+      </div>
     </section>
   </main>
 
@@ -585,7 +592,7 @@
 
     reloadBtn.addEventListener('click', loadData);
     runTestBtn.addEventListener('click', () => runEndpointTest(endpointInput.value));
-    testPinchBtn.addEventListener('click', () => runEndpointTest('/gif/pinch'));
+    testPinchBtn.addEventListener('click', () => runEndpointTest('/sfw/pinch'));
 
     document.querySelectorAll('[data-q]').forEach(btn => {
       btn.addEventListener('click', () => {

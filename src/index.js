@@ -288,7 +288,6 @@ const NSFW_PROVIDER_MAP = {
 		supportsAliasTags: true,
 		supportedTags: ['waifu', 'neko', 'trap', 'blowjob'],
 		canonicalToSource: {
-			suck: 'blowjob',
 			waifu: 'waifu',
 			neko: 'neko',
 			trap: 'trap',
