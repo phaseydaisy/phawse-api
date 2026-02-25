@@ -14,6 +14,7 @@ const CATEGORY_FAMILIES = {
 	bored: ['bored'],
 	smug: ['smug'],
 	poke: ['poke', 'poking'],
+	lick: ['lick', 'licking'],
 	stare: ['stare', 'staring'],
 	yeet: ['yeet'],
 	lewd: ['lewd', 'nsfw'],
@@ -48,7 +49,7 @@ const CATEGORY_FAMILIES = {
 const SFW_PROVIDER_MAP = {
 	waifupics: {
 		supportsAliasTags: false,
-		supportedTags: ['cringe', 'hug', 'kiss', 'pat', 'slap', 'smile', 'cry', 'wave', 'wink', 'dance', 'blush', 'kick', 'bite', 'cuddle', 'highfive', 'handhold'],
+		supportedTags: ['cringe', 'hug', 'kiss', 'pat', 'slap', 'smile', 'cry', 'wave', 'wink', 'dance', 'blush', 'kick', 'bite', 'lick', 'cuddle', 'highfive', 'handhold'],
 		canonicalToSource: {
 			cringe: 'cringe',
 			hug: 'hug',
@@ -63,6 +64,7 @@ const SFW_PROVIDER_MAP = {
 			blush: 'blush',
 			kick: 'kick',
 			bite: 'bite',
+			lick: 'lick',
 			cuddle: 'cuddle',
 			highfive: 'highfive',
 			handhold: 'handhold'
@@ -127,6 +129,7 @@ const SFW_PROVIDER_MAP = {
 			blush: 'blush',
 			punch: 'punch',
 			bite: 'bite',
+			lick: 'lick',
 			cuddle: 'cuddle',
 			tickle: 'tickle',
 			happy: 'happy',
