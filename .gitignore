@@ -1,0 +1,7 @@
+.wrangler/
+node_modules/
+apis.txt
+possbileapis.txt
+package-lock.json
+wrangler.toml
+.gignore

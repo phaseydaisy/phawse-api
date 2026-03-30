@@ -1,3 +1,5 @@
+import { DONMAI_TAGS } from './donmai-tags.js';
+
 const CORS_HEADERS = {
 	'Access-Control-Allow-Origin': '*',
 	'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -281,6 +283,11 @@ const SFW_PROVIDER_MAP = {
 		supportsAliasTags: true,
 		canonicalToSource: {}
 	}
+	,donmai: {
+		supportsAliasTags: true,
+		supportedTags: DONMAI_TAGS,
+		canonicalToSource: {}
+	}
 };
 
 const NSFW_PROVIDER_MAP = {
@@ -321,6 +328,11 @@ const NSFW_PROVIDER_MAP = {
 			yuri: 'yuri'
 		}
 	}
+},
+donmai: {
+		supportsAliasTags: true,
+		canonicalToSource: {}
+}
 };
 
 function normalizeCategory(value) {
@@ -633,9 +645,48 @@ async function runProvider(provider, sourceTag, categoryInfo, nsfw, env) {
 		return fromPurrbot(sourceTag, categoryInfo, nsfw);
 	case 'tenor':
 		return fromTenorAnime(sourceTag, categoryInfo, nsfw, env);
+	case 'donmai':
+		return fromDonmai(sourceTag, categoryInfo, nsfw);
 	default:
 		return null;
 	}
+}
+
+async function fromDonmai(sourceTag, categoryInfo, nsfw) {
+	const rawTag = String(sourceTag || '').trim();
+	if (!rawTag) return null;
+
+	let queryTags = rawTag;
+	if (nsfw) {
+		queryTags += ' -rating:safe';
+	} else {
+		queryTags += ' rating:safe';
+	}
+
+	const endpoint = `https://danbooru.donmai.us/posts.json?tags=${encodeURIComponent(queryTags)}&limit=20`;
+	const data = await fetchJsonWithTimeout(endpoint, 3000);
+	const posts = Array.isArray(data) ? data : [];
+	if (!posts.length) return null;
+
+	const candidates = shuffleArray(posts);
+	for (const post of candidates) {
+		const fileUrl = post?.large_file_url || post?.file_url || post?.preview_file_url || post?.source || null;
+		if (!fileUrl || typeof fileUrl !== 'string' || !fileUrl.startsWith('http')) continue;
+
+		if (nsfw) {
+			if (!isLikelyImageOrGifUrl(fileUrl)) continue;
+		} else {
+			if (allowsImageForSfwCategory(categoryInfo, sourceTag)) {
+				if (!isLikelyImageOrGifUrl(fileUrl)) continue;
+			} else if (!isLikelyGifUrl(fileUrl)) {
+				continue;
+			}
+		}
+
+		return toResult({ categoryInfo, sourceTag, sourceName: 'donmai', url: fileUrl, nsfw });
+	}
+
+	return null;
 }
 
 async function resolveGif(categoryInfo, nsfw, env) {
