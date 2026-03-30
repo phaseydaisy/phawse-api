@@ -1,5 +1,3 @@
-import { DONMAI_TAGS } from './donmai-tags.js';
-
 // @ts-nocheck
 const CORS_HEADERS = {
 	'Access-Control-Allow-Origin': '*',
@@ -71,6 +69,10 @@ const CATEGORY_FAMILIES = {
 	sad: ['sad', 'sorrow'],
 	angry: ['angry', 'mad']
 };
+
+const DONMAI_TAGS = [
+	'1girl', '1boy', '2girls', '3girls', 'ahegao', 'ahoge', 'ankle_socks', 'ass', 'ass_grab', 'atmospheric', 'back', 'bath', 'bathrobe', 'bed', 'bedroom', 'belt', 'bikini', 'blonde_hair', 'blush', 'boobs', 'bra', 'braids', 'breasts', 'brunette_hair', 'butt', 'cheek', 'cheeks', 'chest', 'cleavage', 'clothes_lift', 'closed_eyes', 'collarbone', 'corset', 'costume', 'cute', 'dark_skin', 'dress', 'earrings', 'eyepatch', 'female', 'finger_to_mouth', 'fingering', 'fishnets', 'flowers', 'foot_focus', 'fox_girl', 'fox_ears', 'fox_tail', 'full_body', 'gloves', 'hair_ribbon', 'happy', 'hat', 'heels', 'high_heels', 'highres', 'hood', 'horns', 'hot_springs', 'hug', 'in_bed', 'jacket', 'jewelry', 'kissing', 'kneeling', 'lace', 'large_breasts', 'lingerie', 'long_hair', 'maid', 'mask', 'medium_breasts', 'minidress', 'miniskirt', 'mirror', 'mouth_open', 'multiple_girls', 'necklace', 'nightwear', 'nipples', 'naked', 'neko', 'nekomimi', 'open_shirt', 'panties', 'pantyhose', 'pants', 'petting', 'ponytail', 'pose', 'pov', 'ribbon', 'school_uniform', 'scarf', 'shirt', 'shirt_lift', 'shorts', 'short_hair', 'sitting', 'skirt', 'sleeping', 'smile', 'smirk', 'socks', 'solo', 'solo_female', 'sweater', 'swimsuit', 'tail', 'tank_top', 'thighhighs', 'tights', 'tie', 'tshirt', 'twintails', 'underboob', 'underwear', 'uniform', 'vaginal', 'waist_up', 'wet_clothes', 'white_socks', 'wink', 'yuri', 'yaoi', 'anal', 'blowjob', 'cum', 'dick', 'pussy', 'pussylick', 'sex', 'threesome', 'handjob', 'cunnilingus', 'oral', 'animated', 'animated_gif', 'gif', 'loop', 'motion', 'stockings', 'bondage', 'gag', 'censored', 'uncensored', 'bdsm', 'latex', 'collar', 'strapon', 'cum_on_face', 'facial', 'footjob', 'panties_down', 'thighs', 'off_shoulder'
+];
 
 const SFW_PROVIDER_MAP = {
 	waifupics: {
@@ -283,8 +285,8 @@ const SFW_PROVIDER_MAP = {
 	tenor: {
 		supportsAliasTags: true,
 		canonicalToSource: {}
-	}
-	,donmai: {
+	},
+	donmai: {
 		supportsAliasTags: true,
 		supportedTags: DONMAI_TAGS,
 		canonicalToSource: {}
@@ -329,11 +331,6 @@ const NSFW_PROVIDER_MAP = {
 			yuri: 'yuri'
 		}
 	}
-},
-donmai: {
-		supportsAliasTags: true,
-		canonicalToSource: {}
-}
 };
 
 function normalizeCategory(value) {
