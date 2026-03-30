@@ -799,7 +799,19 @@ async function handleHomePage(request, env) {
 	if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
 		const assetUrl = new URL(request.url);
 		assetUrl.pathname = '/index.html';
-		return env.ASSETS.fetch(new Request(assetUrl.toString(), request));
+		const assetResponse = await env.ASSETS.fetch(new Request(assetUrl.toString(), request));
+		const headers = new Headers(assetResponse.headers);
+		headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+		headers.set('Pragma', 'no-cache');
+		headers.set('Expires', '0');
+		for (const [key, value] of Object.entries(CORS_HEADERS)) {
+			headers.set(key, value);
+		}
+		return new Response(assetResponse.body, {
+			status: assetResponse.status,
+			statusText: assetResponse.statusText,
+			headers
+		});
 	}
 
 	return new Response('Home page asset binding is not configured.', {
