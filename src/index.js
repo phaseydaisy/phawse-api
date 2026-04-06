@@ -45,6 +45,7 @@ const CATEGORY_FAMILIES = {
 	kitsune: ['kitsune'],
 	senko: ['senko'],
 	shiro: ['shiro'],
+	spank: ['spank', 'spanking'],
 	stare: ['stare', 'staring'],
 	yeet: ['yeet'],
 	nosebleed: ['nosebleed'],
@@ -72,7 +73,7 @@ const CATEGORY_FAMILIES = {
 	yaoi: ['yaoi'],
 	yuri: ['yuri'],
 	trap: ['trap'],
-	neko: ['neko'],
+	neko: ['neko', 'nekomimi', 'cat_girl'],
 	waifu: ['waifu'],
 	hug: ['hug', 'hugging'],
 	kiss: ['kiss', 'kissing'],
@@ -98,7 +99,8 @@ const CATEGORY_FAMILIES = {
 	thighs: ['thighs'],
 	zettairyouiki: ['zettairyouiki', 'zettai_ryouiki'],
 	underboob: ['underboob'],
-	gag: ['gag', 'gagging']
+	gag: ['gag', 'gagging'],
+	feet: ['feet', 'foot']
 };
 
 const DONMAI_NSFW_TAGS = [
@@ -320,6 +322,43 @@ const SFW_PROVIDER_MAP = {
 	tenor: {
 		supportsAliasTags: true,
 		canonicalToSource: {}
+	},
+	konachan: {
+		supportsAliasTags: false,
+		supportedTags: ['waifu', 'neko', 'hug', 'kiss', 'pat', 'slap', 'smile', 'cry', 'laugh', 'wave', 'wink', 'dance', 'blush', 'punch', 'kick', 'bite', 'lick', 'cuddle', 'tickle', 'highfive', 'handhold', 'happy', 'sad', 'angry', 'bored', 'pout', 'stare', 'cringe', 'facepalm', 'shrug', 'nope'],
+		canonicalToSource: {
+			waifu: 'waifu',
+			neko: 'neko',
+			hug: 'hug',
+			kiss: 'kiss',
+			pat: 'pat',
+			slap: 'slap',
+			smile: 'smile',
+			cry: 'cry',
+			laugh: 'laugh',
+			wave: 'wave',
+			wink: 'wink',
+			dance: 'dance',
+			blush: 'blush',
+			punch: 'punch',
+			kick: 'kick',
+			bite: 'bite',
+			lick: 'lick',
+			cuddle: 'cuddle',
+			tickle: 'tickle',
+			highfive: 'highfive',
+			handhold: 'handhold',
+			happy: 'happy',
+			sad: 'sad',
+			angry: 'angry',
+			bored: 'bored',
+			pout: 'pout',
+			stare: 'stare',
+			cringe: 'cringe',
+			facepalm: 'facepalm',
+			shrug: 'shrug',
+			nope: 'nope'
+		}
 	}
 };
 
@@ -363,7 +402,7 @@ const NSFW_PROVIDER_MAP = {
 	},
 	nekobot: {
 		supportsAliasTags: true,
-		supportedTags: ['neko', 'waifu', 'hentai', 'anal', 'cum', 'fuck', 'pussy', 'solo', 'yuri', 'blowjob', 'bj', 'feet', 'lewd', 'baka', 'holo', 'foxgirl', 'kemonomimi', 'keta', 'erotic', 'femdom', 'cumsluts', 'spank', 'tits', 'avatar', 'wallpaper', '4k', 'thighs', 'gag'],
+		supportedTags: ['neko', 'waifu', 'hentai', 'anal', 'cum', 'fuck', 'pussylick', 'solo', 'yaoi', 'yuri', 'blowjob', 'lewd', 'baka', 'holo', 'kitsune', 'thighs', 'gag', 'feet'],
 		canonicalToSource: {
 			neko: 'neko',
 			waifu: 'waifu',
@@ -371,18 +410,18 @@ const NSFW_PROVIDER_MAP = {
 			anal: 'anal',
 			cum: 'cum',
 			fuck: 'fuck',
-			pussylick: 'pussy',
+			pussylick: 'pussylick',
 			solo: 'solo',
 			yuri: 'yuri',
+			yaoi: 'yaoi',
 			blowjob: 'blowjob',
 			lewd: 'lewd',
 			baka: 'baka',
 			holo: 'holo',
-			kitsune: 'foxgirl',
-			spank: 'spank',
-			slap: 'spank',
+			kitsune: 'kitsune',
 			thighs: 'thighs',
-			gag: 'gag'
+			gag: 'gag',
+			feet: 'feet'
 		}
 	},
 	yandere: {
@@ -394,6 +433,30 @@ const NSFW_PROVIDER_MAP = {
 		supportsAliasTags: true,
 		supportedTags: DONMAI_NSFW_TAGS,
 		canonicalToSource: {}
+	},
+	konachan: {
+		supportsAliasTags: false,
+		supportedTags: ['thighs', 'zettairyouiki', 'underboob', 'gag', 'hentai', 'blowjob', 'lewd', 'anal', 'cum', 'fuck', 'pussylick', 'solo', 'solomale', 'yaoi', 'yuri', 'trap', 'neko', 'waifu'],
+		canonicalToSource: {
+			thighs: 'thighs',
+			zettairyouiki: 'zettairyouiki',
+			underboob: 'underboob',
+			gag: 'gag',
+			hentai: 'hentai',
+			blowjob: 'blowjob',
+			lewd: 'lewd',
+			anal: 'anal',
+			cum: 'cum',
+			fuck: 'fuck',
+			pussylick: 'pussylick',
+			solo: 'solo',
+			solomale: 'solo_male',
+			yaoi: 'yaoi',
+			yuri: 'yuri',
+			trap: 'trap',
+			neko: 'neko',
+			waifu: 'waifu'
+		}
 	}
 };
 function resolveCategory(category) {
@@ -700,6 +763,8 @@ async function runProvider(provider, sourceTag, categoryInfo, nsfw, env) {
 		return fromNekobot(sourceTag, categoryInfo, nsfw, env);
 	case 'yandere':
 		return fromYandere(sourceTag, categoryInfo, nsfw, env);
+	case 'konachan':
+		return fromKonachan(sourceTag, categoryInfo, nsfw);
 	default:
 		return null;
 	}
@@ -783,6 +848,43 @@ async function fromYandere(sourceTag, categoryInfo, nsfw, env) {
 		}
 
 		return toResult({ categoryInfo, sourceTag, sourceName: 'yande.re', url: fileUrl, nsfw });
+	}
+
+	return null;
+}
+
+async function fromKonachan(sourceTag, categoryInfo, nsfw) {
+	const rawTag = String(sourceTag || '').trim();
+	if (!rawTag) return null;
+
+	let queryTags = rawTag;
+	if (nsfw) {
+		queryTags += ' -rating:safe';
+	} else {
+		queryTags += ' rating:safe';
+	}
+
+	const endpoint = `https://konachan.com/post.json?tags=${encodeURIComponent(queryTags)}&limit=20`;
+	const data = await fetchJsonWithTimeout(endpoint, 3000);
+	const posts = Array.isArray(data) ? data : [];
+	if (!posts.length) return null;
+
+	const candidates = shuffleArray(posts);
+	for (const post of candidates) {
+		const fileUrl = post?.file_url || post?.jpeg_url || post?.sample_url || null;
+		if (!fileUrl || typeof fileUrl !== 'string' || !fileUrl.startsWith('http')) continue;
+
+		if (nsfw) {
+			if (!isLikelyImageOrGifUrl(fileUrl)) continue;
+		} else {
+			if (allowsImageForSfwCategory(categoryInfo, sourceTag)) {
+				if (!isLikelyImageOrGifUrl(fileUrl)) continue;
+			} else if (!isLikelyGifUrl(fileUrl)) {
+				continue;
+			}
+		}
+
+		return toResult({ categoryInfo, sourceTag, sourceName: 'konachan.com', url: fileUrl, nsfw });
 	}
 
 	return null;
