@@ -4,4 +4,4 @@ apis.txt
 possbileapis.txt
 package-lock.json
 wrangler.toml
-.gignore
+.gitignore

@@ -2,8 +2,25 @@
 const CORS_HEADERS = {
 	'Access-Control-Allow-Origin': '*',
 	'Access-Control-Allow-Methods': 'GET, OPTIONS',
-	'Access-Control-Allow-Headers': 'Content-Type'
+	'Access-Control-Allow-Headers': 'Content-Type',
+	'Cache-Control': 'no-cache, no-store, must-revalidate',
+	'Pragma': 'no-cache',
+	'Expires': '0'
 };
+
+function normalizeCategory(value) {
+	return String(value || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+}
+
+function jsonResponse(data, status = 200, headers = CORS_HEADERS) {
+	return new Response(JSON.stringify(data), {
+		status,
+		headers: {
+			'Content-Type': 'application/json',
+			...headers
+		}
+	});
+}
 
 const CATEGORY_FAMILIES = {
 	disgust: ['disgust', 'disgusted', 'gross', 'ew', 'eww'],
@@ -30,6 +47,16 @@ const CATEGORY_FAMILIES = {
 	shiro: ['shiro'],
 	stare: ['stare', 'staring'],
 	yeet: ['yeet'],
+	nosebleed: ['nosebleed'],
+	baka: ['baka'],
+	nom: ['nom'],
+	feed: ['feed'],
+	sleep: ['sleep'],
+	think: ['think'],
+	thumbsup: ['thumbsup'],
+	yawn: ['yawn'],
+	nod: ['nod'],
+	handshake: ['handshake'],
 	lewd: ['lewd', 'nsfw'],
 	hentai: ['hentai', 'ecchi'],
 	blowjob: ['blowjob', 'blow_job', 'bj', 'fellatio', 'suck', 'sucking'],
@@ -67,11 +94,18 @@ const CATEGORY_FAMILIES = {
 	highfive: ['highfive'],
 	happy: ['happy', 'joy', 'joyful'],
 	sad: ['sad', 'sorrow'],
-	angry: ['angry', 'mad']
+	angry: ['angry', 'mad'],
+	thighs: ['thighs'],
+	zettairyouiki: ['zettairyouiki', 'zettai_ryouiki'],
+	underboob: ['underboob'],
+	gag: ['gag', 'gagging']
 };
 
-const DONMAI_TAGS = [
-	'1girl', '1boy', '2girls', '3girls', 'ahegao', 'ahoge', 'ankle_socks', 'ass', 'ass_grab', 'atmospheric', 'back', 'bath', 'bathrobe', 'bed', 'bedroom', 'belt', 'bikini', 'blonde_hair', 'blush', 'boobs', 'bra', 'braids', 'breasts', 'brunette_hair', 'butt', 'cheek', 'cheeks', 'chest', 'cleavage', 'clothes_lift', 'closed_eyes', 'collarbone', 'corset', 'costume', 'cute', 'dark_skin', 'dress', 'earrings', 'eyepatch', 'female', 'finger_to_mouth', 'fingering', 'fishnets', 'flowers', 'foot_focus', 'fox_girl', 'fox_ears', 'fox_tail', 'full_body', 'gloves', 'hair_ribbon', 'happy', 'hat', 'heels', 'high_heels', 'highres', 'hood', 'horns', 'hot_springs', 'hug', 'in_bed', 'jacket', 'jewelry', 'kissing', 'kneeling', 'lace', 'large_breasts', 'lingerie', 'long_hair', 'maid', 'mask', 'medium_breasts', 'minidress', 'miniskirt', 'mirror', 'mouth_open', 'multiple_girls', 'necklace', 'nightwear', 'nipples', 'naked', 'neko', 'nekomimi', 'open_shirt', 'panties', 'pantyhose', 'pants', 'petting', 'ponytail', 'pose', 'pov', 'ribbon', 'school_uniform', 'scarf', 'shirt', 'shirt_lift', 'shorts', 'short_hair', 'sitting', 'skirt', 'sleeping', 'smile', 'smirk', 'socks', 'solo', 'solo_female', 'sweater', 'swimsuit', 'tail', 'tank_top', 'thighhighs', 'tights', 'tie', 'tshirt', 'twintails', 'underboob', 'underwear', 'uniform', 'vaginal', 'waist_up', 'wet_clothes', 'white_socks', 'wink', 'yuri', 'yaoi', 'anal', 'blowjob', 'cum', 'dick', 'pussy', 'pussylick', 'sex', 'threesome', 'handjob', 'cunnilingus', 'oral', 'animated', 'animated_gif', 'gif', 'loop', 'motion', 'stockings', 'bondage', 'gag', 'censored', 'uncensored', 'bdsm', 'latex', 'collar', 'strapon', 'cum_on_face', 'facial', 'footjob', 'panties_down', 'thighs', 'off_shoulder'
+const DONMAI_NSFW_TAGS = [
+	'1girl', '1boy', '2girls', '3girls', 'ahegao', 'anal', 'ass', 'ass_grab', 'boobs', 'breasts', 'butt', 'cum',
+	'cum_on_face', 'cunnilingus', 'dick', 'facial', 'fingering', 'footjob', 'gag', 'handjob', 'hentai', 'lewd',
+	'naked', 'nipples', 'oral', 'pussy', 'pussylick', 'strapon', 'uncensored', 'vaginal', 'yaoi', 'yuri', 'trap',
+	'blowjob', 'fuck', 'solo_female', 'solo_male', 'threesome_fff', 'threesome_ffm', 'threesome_mmf', 'thighs', 'underboob', 'zettairyouiki'
 ];
 
 const SFW_PROVIDER_MAP = {
@@ -104,7 +138,7 @@ const SFW_PROVIDER_MAP = {
 	},
 	nekosbest: {
 		supportsAliasTags: true,
-		supportedTags: ['neko', 'waifu', 'angry', 'hug', 'kiss', 'slap', 'pat', 'poke', 'wave', 'smile', 'highfive', 'handshake', 'bite', 'blush', 'bored', 'cry', 'dance', 'facepalm', 'feed', 'happy', 'laugh', 'nod', 'nom', 'nope', 'pout', 'shrug', 'sleep', 'smug', 'stare', 'think', 'thumbsup', 'tickle', 'wink', 'yawn', 'yeet', 'lurk', 'shoot'],
+		supportedTags: ['neko', 'waifu', 'angry', 'hug', 'kiss', 'slap', 'pat', 'poke', 'wave', 'smile', 'highfive', 'handshake', 'bite', 'blush', 'bored', 'cry', 'dance', 'facepalm', 'feed', 'happy', 'laugh', 'nod', 'nom', 'nope', 'nosebleed', 'pout', 'shrug', 'sleep', 'smug', 'stare', 'think', 'thumbsup', 'tickle', 'wink', 'yawn', 'yeet', 'lurk', 'shoot'],
 		canonicalToSource: {
 			neko: 'neko',
 			waifu: 'waifu',
@@ -138,12 +172,13 @@ const SFW_PROVIDER_MAP = {
 			cuddle: 'cuddle',
 			tickle: 'tickle',
 			highfive: 'highfive',
-			happy: 'happy'
+			happy: 'happy',
+			nosebleed: 'nosebleed'
 		}
 	},
 	nekosapiweb: {
 		supportsAliasTags: true,
-		supportedTags: ['baka', 'bite', 'blush', 'bored', 'cry', 'cuddle', 'dance', 'facepalm', 'feed', 'handhold', 'happy', 'highfive', 'hug', 'kick', 'kiss', 'laugh', 'lick', 'nom', 'pat', 'poke', 'pout', 'punch', 'shoot', 'shrug', 'slap', 'sleep', 'smile', 'smug', 'stare', 'tickle', 'wave', 'wink', 'yeet'],
+		supportedTags: ['baka', 'bite', 'blush', 'bored', 'cry', 'cuddle', 'dance', 'facepalm', 'feed', 'gag', 'handhold', 'happy', 'highfive', 'hug', 'kick', 'kiss', 'laugh', 'lick', 'nom', 'pat', 'poke', 'pout', 'punch', 'shoot', 'shrug', 'slap', 'sleep', 'smile', 'smug', 'stare', 'tickle', 'wave', 'wink', 'yeet'],
 		canonicalToSource: {
 			disgust: 'facepalm',
 			facepalm: 'facepalm',
@@ -224,7 +259,7 @@ const SFW_PROVIDER_MAP = {
 	},
 	otakugif: {
 		supportsAliasTags: true,
-		supportedTags: ['hug', 'kiss', 'pat', 'slap', 'poke', 'pinch', 'lick', 'cuddle', 'cry', 'wave', 'wink', 'dance', 'smile', 'blush', 'pout', 'facepalm', 'shrug', 'handhold', 'tickle', 'bite', 'laugh'],
+		supportedTags: ['hug', 'kiss', 'pat', 'slap', 'poke', 'gag', 'pinch', 'lick', 'cuddle', 'cry', 'wave', 'wink', 'dance', 'smile', 'blush', 'pout', 'facepalm', 'shrug', 'handhold', 'tickle', 'bite', 'laugh'],
 		canonicalToSource: {
 			disgust: 'facepalm',
 			facepalm: 'facepalm',
@@ -285,11 +320,6 @@ const SFW_PROVIDER_MAP = {
 	tenor: {
 		supportsAliasTags: true,
 		canonicalToSource: {}
-	},
-	donmai: {
-		supportsAliasTags: true,
-		supportedTags: DONMAI_TAGS,
-		canonicalToSource: {}
 	}
 };
 
@@ -309,7 +339,7 @@ const NSFW_PROVIDER_MAP = {
 		supportedTags: ['lewd', 'hentai'],
 		canonicalToSource: {
 			lewd: 'lewd',
-			hentai: 'lewd'
+			hentai: 'hentai'
 		}
 	},
 	purrbot: {
@@ -330,23 +360,42 @@ const NSFW_PROVIDER_MAP = {
 			yaoi: 'yaoi',
 			yuri: 'yuri'
 		}
+	},
+	nekobot: {
+		supportsAliasTags: true,
+		supportedTags: ['neko', 'waifu', 'hentai', 'anal', 'cum', 'fuck', 'pussy', 'solo', 'yuri', 'blowjob', 'bj', 'feet', 'lewd', 'baka', 'holo', 'foxgirl', 'kemonomimi', 'keta', 'erotic', 'femdom', 'cumsluts', 'spank', 'tits', 'avatar', 'wallpaper', '4k', 'thighs', 'gag'],
+		canonicalToSource: {
+			neko: 'neko',
+			waifu: 'waifu',
+			hentai: 'hentai',
+			anal: 'anal',
+			cum: 'cum',
+			fuck: 'fuck',
+			pussylick: 'pussy',
+			solo: 'solo',
+			yuri: 'yuri',
+			blowjob: 'blowjob',
+			lewd: 'lewd',
+			baka: 'baka',
+			holo: 'holo',
+			kitsune: 'foxgirl',
+			spank: 'spank',
+			slap: 'spank',
+			thighs: 'thighs',
+			gag: 'gag'
+		}
+	},
+	yandere: {
+		supportsAliasTags: true,
+		supportedTags: DONMAI_NSFW_TAGS, // Yandere supports most anime tags like Danbooru
+		canonicalToSource: {}
+	},
+	donmai: {
+		supportsAliasTags: true,
+		supportedTags: DONMAI_NSFW_TAGS,
+		canonicalToSource: {}
 	}
 };
-
-function normalizeCategory(value) {
-	return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-}
-
-function jsonResponse(data, status = 200, headers = CORS_HEADERS) {
-	return new Response(JSON.stringify(data), {
-		status,
-		headers: {
-			'Content-Type': 'application/json',
-			...headers
-		}
-	});
-}
-
 function resolveCategory(category) {
 	const normalized = normalizeCategory(category);
 	if (!normalized) return null;
@@ -553,7 +602,7 @@ async function fromTenorAnime(sourceTag, categoryInfo, nsfw, env) {
 	if (nsfw) return null;
 	const key = env.TENOR_API_KEY || 'LIVDSRZULELA';
 	const query = encodeURIComponent(`anime ${sourceTag} reaction`);
-	const data = await fetchJsonWithTimeout(`https://tenor.googleapis.com/v2/search?q=${query}&key=${key}&limit=20&media_filter=gif`);
+	const data = await fetchJsonWithTimeout(`https://tenor.googleapis.com/v2/search?q=${query}&key=${key}&limit=50&media_filter=gif`);
 	const items = shuffleArray(Array.isArray(data?.results) ? data.results : []);
 
 	for (const item of items) {
@@ -613,6 +662,8 @@ function buildProviderPlan(categoryInfo, nsfw) {
 					sourceTags.push(alias);
 				}
 			}
+		} else if (cfg.supportedTags && cfg.supportedTags.includes(categoryInfo.canonical)) {
+			sourceTags.push(categoryInfo.canonical);
 		}
 
 		for (const sourceTag of uniqueTags(sourceTags)) {
@@ -645,6 +696,10 @@ async function runProvider(provider, sourceTag, categoryInfo, nsfw, env) {
 		return fromTenorAnime(sourceTag, categoryInfo, nsfw, env);
 	case 'donmai':
 		return fromDonmai(sourceTag, categoryInfo, nsfw);
+	case 'nekobot':
+		return fromNekobot(sourceTag, categoryInfo, nsfw, env);
+	case 'yandere':
+		return fromYandere(sourceTag, categoryInfo, nsfw, env);
 	default:
 		return null;
 	}
@@ -656,7 +711,7 @@ async function fromDonmai(sourceTag, categoryInfo, nsfw) {
 
 	let queryTags = rawTag;
 	if (nsfw) {
-		queryTags += ' -rating:safe';
+		queryTags += ' -rating:safe filetype:gif';
 	} else {
 		queryTags += ' rating:safe';
 	}
@@ -668,7 +723,53 @@ async function fromDonmai(sourceTag, categoryInfo, nsfw) {
 
 	const candidates = shuffleArray(posts);
 	for (const post of candidates) {
-		const fileUrl = post?.large_file_url || post?.file_url || post?.preview_file_url || post?.source || null;
+		const fileUrl = post?.file_url || post?.large_file_url || post?.preview_file_url || post?.source || null;
+		if (!fileUrl || typeof fileUrl !== 'string' || !fileUrl.startsWith('http')) continue;
+
+		if (nsfw) {
+			if (!isLikelyGifUrl(fileUrl)) continue;
+		} else {
+			if (allowsImageForSfwCategory(categoryInfo, sourceTag)) {
+				if (!isLikelyImageOrGifUrl(fileUrl)) continue;
+			} else if (!isLikelyGifUrl(fileUrl)) {
+				continue;
+			}
+		}
+
+		return toResult({ categoryInfo, sourceTag, sourceName: 'donmai', url: fileUrl, nsfw });
+	}
+
+	return null;
+}
+
+async function fromNekobot(sourceTag, categoryInfo, nsfw, env) {
+	if (!nsfw) return null; // Primarily NSFW API
+	const endpoint = `https://nekobot.xyz/api/image?type=${encodeURIComponent(sourceTag)}`;
+	const data = await fetchJsonWithTimeout(endpoint, 3000);
+	const url = data?.message;
+	if (!url || typeof url !== 'string' || !isLikelyImageOrGifUrl(url)) return null;
+	return toResult({ categoryInfo, sourceTag, sourceName: 'nekobot.xyz', url, nsfw: true });
+}
+
+async function fromYandere(sourceTag, categoryInfo, nsfw, env) {
+	const rawTag = String(sourceTag || '').trim();
+	if (!rawTag) return null;
+
+	let queryTags = rawTag;
+	if (nsfw) {
+		queryTags += ' -rating:safe';
+	} else {
+		queryTags += ' rating:safe';
+	}
+
+	const endpoint = `https://yande.re/post.json?tags=${encodeURIComponent(queryTags)}&limit=20`;
+	const data = await fetchJsonWithTimeout(endpoint, 3000);
+	const posts = Array.isArray(data) ? data : [];
+	if (!posts.length) return null;
+
+	const candidates = shuffleArray(posts);
+	for (const post of candidates) {
+		const fileUrl = post?.file_url || post?.jpeg_url || post?.sample_url || null;
 		if (!fileUrl || typeof fileUrl !== 'string' || !fileUrl.startsWith('http')) continue;
 
 		if (nsfw) {
@@ -681,7 +782,7 @@ async function fromDonmai(sourceTag, categoryInfo, nsfw) {
 			}
 		}
 
-		return toResult({ categoryInfo, sourceTag, sourceName: 'donmai', url: fileUrl, nsfw });
+		return toResult({ categoryInfo, sourceTag, sourceName: 'yande.re', url: fileUrl, nsfw });
 	}
 
 	return null;

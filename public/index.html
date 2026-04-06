@@ -212,7 +212,7 @@
       background: #15171b;
       padding: 12px;
       font-size: 12px;
-      min-block-size: 78px;
+      min-block-size: 150px;
       white-space: pre-wrap;
       word-break: break-word;
     }
@@ -338,6 +338,7 @@
     <section class="layout">
       <aside class="card">
         <h2 class="section-title">Quick Tester</h2>
+        <p style="margin: 0; font-size: 13px; color: var(--muted);">Test API endpoints. Enter a path like /sfw/hug or /nsfw/thighs. Results show JSON response and preview image if available.</p>
         <div class="tester">
           <div class="tester-row">
             <input class="input" id="endpointInput" value="/sfw/pinch" />
@@ -359,6 +360,10 @@
             <button class="btn" data-q="/nsfw/pussylick">nsfw/pussylick</button>
             <button class="btn" data-q="/nsfw/yaoi">nsfw/yaoi</button>
             <button class="btn" data-q="/nsfw/yuri">nsfw/yuri</button>
+            <button class="btn" data-q="/nsfw/thighs">nsfw/thighs</button>
+            <button class="btn" data-q="/nsfw/underboob">nsfw/underboob</button>
+            <button class="btn" data-q="/nsfw/zettairyouiki">nsfw/zettairyouiki</button>
+            <button class="btn" data-q="/nsfw/gag">nsfw/gag</button>
           </div>
           <div class="result" id="testResult">Run a test to inspect live endpoint status + response.</div>
         </div>
@@ -430,7 +435,11 @@
         const ms = Math.round(performance.now() - start);
         const body = await res.json().catch(() => ({}));
         const preview = JSON.stringify(body).slice(0, 360);
-        setResult(`status=${res.status} | ${ms}ms\n${preview}`, res.ok ? 'ok' : 'danger');
+        let display = `status=${res.status} | ${ms}ms\n${preview}`;
+        if (body.url && typeof body.url === 'string') {
+          display += `\n\n<img src="${body.url}" alt="Result" style="max-width: 100%; max-height: 200px; border-radius: 8px; margin-top: 8px;">`;
+        }
+        setResult(display, res.ok ? 'ok' : 'danger');
       } catch (error) {
         setResult(`Request failed: ${error.message}`, 'danger');
       }
