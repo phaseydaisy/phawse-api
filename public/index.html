@@ -286,22 +286,53 @@
       margin: 0;
       font-size: 15px;
       color: var(--accent);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .provider h3 .tag-count {
+      font-size: 11px;
+      background: var(--chip);
+      color: var(--muted);
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-weight: normal;
     }
 
     .map {
       display: grid;
-      gap: 6px;
+      gap: 4px;
       padding-inline-end: 4px;
       font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
     }
 
     .map-item {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1fr auto;
       gap: 8px;
-      flex-wrap: wrap;
-      border-block-end: 1px dashed #34373e;
-      padding-block-end: 5px;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: var(--bg-soft);
+      border: 1px solid transparent;
+      transition: border-color 0.2s ease;
+    }
+
+    .map-item:hover {
+      border-color: var(--line);
+    }
+
+    .map-key {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .map-value {
+      color: var(--muted);
+      font-style: italic;
     }
 
     .ok { color: var(--ok); }
@@ -539,13 +570,13 @@
 
       return `
         <article class="provider">
-          <h3>${name}</h3>
+          <h3>${name} <span class="tag-count">${Object.keys(config?.canonicalToSource || {}).length} tags</span></h3>
           <div class="muted">Alias tags: ${config?.supportsAliasTags ? 'enabled' : 'disabled'}</div>
           <div class="muted">Supported source tags (${supported.length})</div>
           <div class="chips">${supportedVisible.map(tag => `<span class="chip">${tag}</span>`).join('') || '<span class="muted">No supported tags match.</span>'}</div>
           <div class="muted">Canonical tag → provider source tag (${Object.keys(config?.canonicalToSource || {}).length})</div>
           <div class="map">
-            ${rows.map(([from, to]) => `<div class="map-item"><span>${from}</span><span class="ok">${to}</span></div>`).join('') || '<div class="muted">No mappings match.</div>'}
+            ${rows.map(([from, to]) => `<div class="map-item"><span class="map-key">${from}</span><span class="map-value">${to}</span></div>`).join('') || '<div class="muted">No mappings match.</div>'}
           </div>
         </article>
       `;
