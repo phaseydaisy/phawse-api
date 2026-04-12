@@ -457,6 +457,60 @@ const NSFW_PROVIDER_MAP = {
 			neko: 'neko',
 			waifu: 'waifu'
 		}
+	},
+	rule34: {
+		supportsAliasTags: false,
+		supportedTags: ['thighs', 'zettairyouiki', 'underboob', 'gag', 'hentai', 'blowjob', 'lewd', 'anal', 'cum', 'fuck', 'pussylick', 'solo', 'solomale', 'yaoi', 'yuri', 'trap', 'neko', 'waifu', 'threesomefff', 'threesomeffm', 'threesomemmf'],
+		canonicalToSource: {
+			thighs: 'thighs',
+			zettairyouiki: 'zettairyouiki',
+			underboob: 'underboob',
+			gag: 'gag',
+			hentai: 'hentai',
+			blowjob: 'blowjob',
+			lewd: 'lewd',
+			anal: 'anal',
+			cum: 'cum',
+			fuck: 'fuck',
+			pussylick: 'pussylick',
+			solo: 'solo',
+			solomale: 'solo_male',
+			yaoi: 'yaoi',
+			yuri: 'yuri',
+			trap: 'trap',
+			neko: 'neko',
+			waifu: 'waifu',
+			threesomefff: 'threesome_fff',
+			threesomeffm: 'threesome_ffm',
+			threesomemmf: 'threesome_mmf'
+		}
+	},
+	gelbooru: {
+		supportsAliasTags: false,
+		supportedTags: ['thighs', 'zettairyouiki', 'underboob', 'gag', 'hentai', 'blowjob', 'lewd', 'anal', 'cum', 'fuck', 'pussylick', 'solo', 'solomale', 'yaoi', 'yuri', 'trap', 'neko', 'waifu', 'threesomefff', 'threesomeffm', 'threesomemmf'],
+		canonicalToSource: {
+			thighs: 'thighs',
+			zettairyouiki: 'zettairyouiki',
+			underboob: 'underboob',
+			gag: 'gag',
+			hentai: 'hentai',
+			blowjob: 'blowjob',
+			lewd: 'lewd',
+			anal: 'anal',
+			cum: 'cum',
+			fuck: 'fuck',
+			pussylick: 'pussylick',
+			solo: 'solo',
+			solomale: 'solo_male',
+			yaoi: 'yaoi',
+			yuri: 'yuri',
+			trap: 'trap',
+			neko: 'neko',
+			waifu: 'waifu',
+			threesomefff: 'threesome_fff',
+			threesomeffm: 'threesome_ffm',
+			threesomemmf: 'threesome_mmf'
+		}
 	}
 };
 function resolveCategory(category) {
@@ -503,6 +557,10 @@ function allowsImageForSfwCategory(categoryInfo, sourceTag) {
 	const tag = normalizeCategory(sourceTag || '');
 	const imageTags = new Set(['neko', 'waifu', 'holo', 'kitsune', 'senko', 'shiro']);
 	return imageTags.has(canonical) || imageTags.has(tag);
+}
+
+function isImageHeavyTag(canonical) {
+	return ['thighs', 'zettairyouiki', 'underboob'].includes(canonical);
 }
 
 function isLikelyAnimeText(text) {
@@ -765,6 +823,10 @@ async function runProvider(provider, sourceTag, categoryInfo, nsfw, env) {
 		return fromYandere(sourceTag, categoryInfo, nsfw, env);
 	case 'konachan':
 		return fromKonachan(sourceTag, categoryInfo, nsfw);
+	case 'rule34':
+		return fromRule34(sourceTag, categoryInfo, nsfw, env);
+	case 'gelbooru':
+		return fromGelbooru(sourceTag, categoryInfo, nsfw);
 	default:
 		return null;
 	}
@@ -792,7 +854,12 @@ async function fromDonmai(sourceTag, categoryInfo, nsfw) {
 		if (!fileUrl || typeof fileUrl !== 'string' || !fileUrl.startsWith('http')) continue;
 
 		if (nsfw) {
-			if (!isLikelyGifUrl(fileUrl)) continue;
+			// For image-heavy tags, allow static images too
+			if (isImageHeavyTag(categoryInfo.canonical)) {
+				if (!isLikelyImageOrGifUrl(fileUrl)) continue;
+			} else {
+				if (!isLikelyGifUrl(fileUrl)) continue;
+			}
 		} else {
 			if (allowsImageForSfwCategory(categoryInfo, sourceTag)) {
 				if (!isLikelyImageOrGifUrl(fileUrl)) continue;
@@ -885,6 +952,70 @@ async function fromKonachan(sourceTag, categoryInfo, nsfw) {
 		}
 
 		return toResult({ categoryInfo, sourceTag, sourceName: 'konachan.com', url: fileUrl, nsfw });
+	}
+
+	return null;
+}
+
+async function fromRule34(sourceTag, categoryInfo, nsfw, env) {
+	const rawTag = String(sourceTag || '').trim();
+	if (!rawTag) return null;
+
+	// Get API credentials from environment variables
+	const userId = env?.RULE34_USER_ID;
+	const apiKey = env?.RULE34_API_KEY;
+	
+	// If no credentials, skip this provider
+	if (!userId || !apiKey) return null;
+
+	const queryTags = rawTag;
+	let endpoint = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&tags=${encodeURIComponent(queryTags)}&json=1&limit=20`;
+	// Add authentication parameters
+	endpoint += `&user_id=${encodeURIComponent(userId)}&api_key=${encodeURIComponent(apiKey)}`;
+	
+	const data = await fetchJsonWithTimeout(endpoint, 3000);
+	const posts = Array.isArray(data) ? data : [];
+	if (!posts.length) return null;
+
+	const candidates = shuffleArray(posts);
+	for (const post of candidates) {
+		const fileUrl = post?.file_url || post?.sample?.url || post?.preview?.url || null;
+		if (!fileUrl || typeof fileUrl !== 'string' || !fileUrl.startsWith('http')) continue;
+
+		if (isImageHeavyTag(categoryInfo.canonical)) {
+			if (!isLikelyImageOrGifUrl(fileUrl)) continue;
+		} else {
+			if (!isLikelyGifUrl(fileUrl)) continue;
+		}
+
+		return toResult({ categoryInfo, sourceTag, sourceName: 'rule34.xxx', url: fileUrl, nsfw: true });
+	}
+
+	return null;
+}
+
+async function fromGelbooru(sourceTag, categoryInfo, nsfw) {
+	const rawTag = String(sourceTag || '').trim();
+	if (!rawTag) return null;
+
+	const queryTags = rawTag;
+	const endpoint = `https://gelbooru.com/index.php?page=dapi&s=post&q=index&tags=${encodeURIComponent(queryTags)}&json=1&limit=20`;
+	const data = await fetchJsonWithTimeout(endpoint, 3000);
+	const posts = Array.isArray(data) ? data : [];
+	if (!posts.length) return null;
+
+	const candidates = shuffleArray(posts);
+	for (const post of candidates) {
+		const fileUrl = post?.file_url || post?.sample?.url || post?.preview?.url || null;
+		if (!fileUrl || typeof fileUrl !== 'string' || !fileUrl.startsWith('http')) continue;
+
+		if (isImageHeavyTag(categoryInfo.canonical)) {
+			if (!isLikelyImageOrGifUrl(fileUrl)) continue;
+		} else {
+			if (!isLikelyGifUrl(fileUrl)) continue;
+		}
+
+		return toResult({ categoryInfo, sourceTag, sourceName: 'gelbooru.com', url: fileUrl, nsfw: true });
 	}
 
 	return null;
